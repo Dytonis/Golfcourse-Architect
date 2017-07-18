@@ -1,0 +1,502 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System.Linq;
+
+public class Chunk : MonoBehaviour
+{
+    public void UpdateStructure()
+    {
+
+    }
+
+    public bool Longest = true;
+
+    public Vector2 GlobalPosition;
+    public Vector2 Size;
+
+    public bool Viable;
+
+    private List<Vector3> vertices = new List<Vector3>();
+    private Vector3[] normals;
+    private int[] triangles;
+    private Vector2[] uv;
+
+    private int dupeVertCount = 8;
+    private int tileTexSize = 8;
+
+    public Mesh mesh;
+    public MeshFilter[] filters;
+
+    public MeshRenderer L0;
+    public MeshRenderer L1;
+    public MeshRenderer L2;
+
+    public ChunkData data;
+
+    public void Start()
+    {
+        data = new ChunkData(this);
+
+        Build(data);
+    }
+
+    public void ApplyMesh()
+    {
+        foreach(MeshFilter f in filters)
+        {
+            f.mesh = mesh;
+        }
+    }
+
+    public void FastBuild(ChunkData data)
+    {
+        for (int y = 0; y < Size.y + 1; y++)
+        {
+            for (int x = 0; x < Size.x + 1; x++)
+            {
+                //try
+                //{
+                    int vert = getVertByXY(x, y);
+
+                    for(int c = 0; c < dupeVertCount; c++)
+                    {
+                        vertices[vert + c] = new Vector3(vertices[vert + c].x, data[x, y].elevation, vertices[vert + c].z);
+                    }
+                //}
+               // catch
+                //{ }
+            }
+        }
+
+
+        RebuildTriangleStructure();
+        mesh.vertices = vertices.ToArray();
+        mesh.SetUVs(0, uv.ToList());
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+        ApplyMesh();
+        GetComponent<MeshCollider>().sharedMesh = mesh;
+    }
+
+    public void BuildTexture()
+    {
+        Texture2D texL0 = L0.material.mainTexture as Texture2D;
+        Texture2D texL1 = L1.material.mainTexture as Texture2D;
+        Texture2D texL2 = L2.material.mainTexture as Texture2D;
+
+        if(texL0 == null)
+        {
+            texL0 = new Texture2D(tileTexSize * (int)Size.x, tileTexSize * (int)Size.y);
+            L0.material.SetTexture(0, texL0);
+        }
+        if (texL1 == null)
+        {
+            texL1 = new Texture2D(tileTexSize * (int)Size.x, tileTexSize * (int)Size.y);
+            L1.material.SetTexture(0, texL1);
+        }
+        if (texL2 == null)
+        {
+            texL2 = new Texture2D(tileTexSize * (int)Size.x, tileTexSize * (int)Size.y);
+            L2.material.SetTexture(0, texL2);
+        }
+
+        for (int y = 0; y < Size.y; y++)
+        {
+            for (int x = 0; x < Size.x; x++)
+            {
+                int sizeX = x * tileTexSize;
+                int sizeY = y * tileTexSize;
+
+                texL0.SetPixels(sizeX, sizeY, tileTexSize, tileTexSize, data[x, y].type.GetColorsFromTexture()[0]);
+                texL1.SetPixels(sizeX, sizeY, tileTexSize, tileTexSize, data[x, y].type.GetColorsFromTexture()[1]);
+                texL2.SetPixels(sizeX, sizeY, tileTexSize, tileTexSize, data[x, y].type.GetColorsFromTexture()[2]);
+            }
+        }
+
+        texL0.filterMode = FilterMode.Point;
+        texL1.filterMode = FilterMode.Point;
+        texL2.filterMode = FilterMode.Point;
+
+        L0.material.SetTexture("_MainTex", texL0);
+        L1.material.SetTexture("_MainTex", texL1);
+        L2.material.SetTexture("_MainTex", texL2);   
+
+        texL0.Apply();
+        texL1.Apply();
+        texL2.Apply();
+    }
+
+    private Dictionary<Vector2, QuadReference> TriangleQuadDict = new Dictionary<Vector2, QuadReference>();
+
+    public void Build(ChunkData data)
+    {
+        triangles = new int[(int)(Size.x * Size.y) * 6];
+
+        mesh = new Mesh();
+
+        vertices.Clear();
+        TriangleQuadDict.Clear();
+        dic.Clear();
+
+        for (int y = 0; y < Size.y + 1; y++)
+        {
+            for (int x = 0; x < Size.x + 1; x++)
+            {
+                int index = x + y;
+                for (int i = 0; i < dupeVertCount; i++)
+                {
+                    vertices.Add(new Vector3(x, 0, y));
+                }
+            }
+        }
+
+        normals = new Vector3[vertices.Count];
+        uv = new Vector2[vertices.Count];
+
+        int v = 0;
+        for (int x = 0; x < (int)Size.x; x++)
+        {
+            for (int y = 0; y < (int)Size.y; y++)
+            {
+                triangles[v] = checkoutUniqueVertByXY(x, y);
+                triangles[v + 1] = checkoutUniqueVertByXY(x, y + 1);
+                triangles[v + 2] = checkoutUniqueVertByXY(x + 1, y);
+                triangles[v + 3] = checkoutUniqueVertByXY(x + 1, y);
+                triangles[v + 4] = checkoutUniqueVertByXY(x, y + 1);
+                triangles[v + 5] = checkoutUniqueVertByXY(x + 1, y + 1);
+
+                try
+                {
+                    TriangleQuadDict.Add(new Vector2(x, y), new QuadReference(new Vector3(triangles[v], triangles[v + 1], triangles[v + 2]), new Vector3(triangles[v + 3], triangles[v + 4], triangles[v + 5])));
+                }
+                catch { }
+                v += 6;
+            }
+        }
+
+        //elevation per point
+        for (int y = 0; y < Size.y + 1; y++)
+        {
+            for (int x = 0; x < Size.x + 1; x++)
+            {
+                try
+                {
+                    Vector2 pos = new Vector2(x, y);
+                    QuadReference q = TriangleQuadDict[pos];
+
+                    for (int c = 0; c < dupeVertCount; c++)
+                    {
+                        int vert = getVertByXY(x, y) + c;
+                        vertices[vert] = new Vector3(vertices[vert].x, data[x, y].elevation, vertices[vert].z);
+                    }
+                }
+                catch
+                { }
+            }
+        }
+
+        //rebuild structure
+        //check the 4 non quality tiles around for shortest length
+        //if not, rotate the quad by 90 degrees
+        RebuildTriangleStructure();
+
+        BuildUVs();
+
+        //RotateQuad(new Vector2(1, 1));
+        //RotateQuad(new Vector2(0, 0));
+        mesh.vertices = vertices.ToArray();
+        mesh.uv = uv;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+        mesh.RecalculateTangents();
+        ApplyMesh();
+        BuildTexture();
+
+        GetComponent<MeshCollider>().sharedMesh = mesh;
+    }
+
+    private void BuildUVs()
+    {
+        for (int y = 0, i = 0; y < (Size.y + 1) * dupeVertCount; y += dupeVertCount)
+        {
+            for (int x = 0; x < (Size.x + 1) * dupeVertCount; x += dupeVertCount, i += dupeVertCount)
+            {
+                Vector2 value = new Vector2(x / (Size.x * dupeVertCount), y / (Size.y * dupeVertCount));
+                for (int c = 0; c < dupeVertCount; c++)
+                {
+                    uv[i + c] = value;
+                }
+            }
+        }
+    }
+
+    private void RebuildTriangleStructure()
+    {
+        for (int y = 0; y < Size.y; y++)
+        {
+            //break;
+            for (int x = 0; x < Size.x; x++)
+            {
+                try
+                {
+                    QuadReference q = TriangleQuadDict[new Vector2(x, y)];
+                    if (q.quality == false)
+                    {
+                        if (Longest)
+                        {
+                            if (Vector3.Distance(vertices[q.a], vertices[q.f]) > Vector3.Distance(vertices[q.c], vertices[q.e]))
+                            {
+                                if (!q.rotated)
+                                {
+                                    RotateQuad(new Vector2(x, y));
+                                    q.quality = true;
+                                    q.rotated = true;
+                                }
+                                else
+                                {
+                                    RotateQuad(new Vector2(x, y), true);
+                                    q.quality = true;
+                                    q.rotated = false;
+                                }
+                            }
+                        }
+                        if (!Longest)
+                        {
+                            if (Vector3.Distance(vertices[q.a], vertices[q.f]) < Vector3.Distance(vertices[q.c], vertices[q.e]))
+                            {
+                                if (!q.rotated)
+                                {
+                                    RotateQuad(new Vector2(x, y));
+                                    q.quality = true;
+                                    q.rotated = true;
+                                }
+                                else
+                                {
+                                    RotateQuad(new Vector2(x, y), true);
+                                    q.quality = true;
+                                    q.rotated = false;
+                                }
+                            }
+                        }
+                    }
+
+                    TriangleQuadDict[new Vector2(x, y)] = q;
+                }
+                catch { }
+            }
+        }
+    }
+
+    private void RebuildNormals()
+    {
+        for (int i = 0; i < triangles.Length; i += 3)
+        {
+
+            int tri0 = triangles[i];
+            int tri1 = triangles[i + 1];
+            int tri2 = triangles[i + 2];
+            Vector3 vert0 = vertices[tri0];
+            Vector3 vert1 = vertices[tri1];
+            Vector3 vert2 = vertices[tri2];
+
+            Vector3 normal = new Vector3()
+            {
+                x = vert0.y * vert1.z - vert0.y * vert2.z - vert1.y * vert0.z + vert1.y * vert2.z + vert2.y * vert0.z - vert2.y * vert1.z,
+                y = -vert0.x * vert1.z + vert0.x * vert2.z + vert1.x * vert0.z - vert1.x * vert2.z - vert2.x * vert0.z + vert2.x * vert1.z,
+                z = vert0.x * vert1.y - vert0.x * vert2.y - vert1.x * vert0.y + vert1.x * vert2.y + vert2.x * vert0.y - vert2.x * vert1.y
+            };
+            normals[tri0] += normal;
+            normals[tri1] += normal;
+            normals[tri2] += normal;
+        }
+
+        for (int i = 0; i < normals.Length; i++)
+        {
+            // normals [i] = Vector3.Normalize (normals [i]);
+            Vector3 norm = normals[i];
+            float invlength = 1.0f / (float)System.Math.Sqrt(norm.x * norm.x + norm.y * norm.y + norm.z * norm.z);
+            normals[i].x = norm.x * invlength;
+            normals[i].y = norm.y * invlength;
+            normals[i].z = norm.z * invlength;
+        }
+    }
+
+    private void RotateQuad(Vector2 pos, bool invert = false)
+    {
+        Debug.Log("Rotating quad at " + pos + ". Inverted: " + invert);
+
+        if (!invert)
+        {
+            try
+            {
+                QuadReference q = TriangleQuadDict[pos];
+
+                int offset = (((int)pos.x * ((int)Size.y)) + (int)pos.y) * 6;
+
+                checkinUniqueVert(q.a);
+                checkinUniqueVert(q.b);
+                checkinUniqueVert(q.c);
+                checkinUniqueVert(q.d);
+                checkinUniqueVert(q.e);
+                checkinUniqueVert(q.f);
+
+                triangles[offset] = checkoutUniqueVertByXY((int)pos.x, (int)pos.y);
+                triangles[offset + 1] = checkoutUniqueVertByXY((int)pos.x, (int)pos.y + 1);
+                triangles[offset + 2] = checkoutUniqueVertByXY((int)pos.x + 1, (int)pos.y + 1);
+                triangles[offset + 3] = checkoutUniqueVertByXY((int)pos.x, (int)pos.y);
+                triangles[offset + 4] = checkoutUniqueVertByXY((int)pos.x + 1, (int)pos.y + 1);
+                triangles[offset + 5] = checkoutUniqueVertByXY((int)pos.x + 1, (int)pos.y);
+            }
+            catch
+            { }
+        }
+        else
+        {
+            try
+            {
+                QuadReference q = TriangleQuadDict[pos];
+
+                int offset = (((int)pos.x * ((int)Size.y)) + (int)pos.y) * 6;
+
+                checkinUniqueVert(q.a);
+                checkinUniqueVert(q.b);
+                checkinUniqueVert(q.c);
+                checkinUniqueVert(q.d);
+                checkinUniqueVert(q.e);
+                checkinUniqueVert(q.f);
+
+                triangles[offset] = checkoutUniqueVertByXY((int)pos.x, (int)pos.y);
+                triangles[offset + 1] = checkoutUniqueVertByXY((int)pos.x, (int)pos.y + 1);
+                triangles[offset + 2] = checkoutUniqueVertByXY((int)pos.x + 1, (int)pos.y);
+                triangles[offset + 3] = checkoutUniqueVertByXY((int)pos.x + 1, (int)pos.y);
+                triangles[offset + 4] = checkoutUniqueVertByXY((int)pos.x, (int)pos.y + 1);
+                triangles[offset + 5] = checkoutUniqueVertByXY((int)pos.x + 1, (int)pos.y + 1);
+            }
+            catch
+            { }
+        }
+    }
+
+    private Dictionary<Vector2, int> dic = new Dictionary<Vector2, int>();
+    private int getUniqueVertPerQuadByXY(int x, int y)
+    {
+        int v = 0;
+
+        try
+        {
+            v = dic[new Vector2(x, y)];
+            dic[new Vector2(x, y)] = ++v;
+        }
+        catch { dic.Add(new Vector2(x, y), v); }
+
+        return ((x * dupeVertCount) + (y * dupeVertCount * ((int)Size.x + 1))) + v;
+    }
+
+    private Dictionary<int, bool> memory = new Dictionary<int, bool>();
+    private int checkoutUniqueVertByXY(int x, int y)
+    {
+        int vert = -1;
+        bool inUse = true;
+        int check = ((x * dupeVertCount) + (y * dupeVertCount * ((int)Size.x + 1)));
+
+        try
+        {
+            for (int i = 0; i < dupeVertCount; i++)
+            {
+                inUse = memory[check];
+                if (inUse == true)
+                    check++;
+                else
+                {
+                    memory[check] = true;
+                    vert = check;
+                    return vert;
+                }
+            }
+        }
+        catch { memory.Add(check, true); }
+
+        return check;
+    }
+
+    private void checkinUniqueVert(int vert)
+    {
+        try
+        {
+            memory[vert] = false;
+        }
+        catch
+        {
+
+        }
+    }
+
+    private void returnUniqueVertPerQuadByXY(int x, int y)
+    {
+        int v = 0;
+
+        try
+        {
+            v = dic[new Vector2(x, y)];
+            if (v > 0)
+                dic[new Vector2(x, y)] = --v;
+        }
+        catch { }
+    }
+
+    private int getVertByXY(int x, int y)
+    {
+        if (x < 0 || x > Size.x + 1)
+            return -1;
+        if (y < 0 || y > Size.y + 1)
+            return -1;
+
+        int result = ((x * dupeVertCount) + (y * dupeVertCount * ((int)Size.x + 1)));
+        return result;
+    }
+
+    private int getVertByXYWithQuad(int x, int y, QuadReference q)
+    {
+        if (x < 0 || x > Size.x + 1)
+            return -1;
+        if (y < 0 || y > Size.y + 1)
+            return -1;
+
+        int result = ((x * dupeVertCount) + (y * dupeVertCount * ((int)Size.x + 1)));
+
+        if (q.a >= result && q.a < result + 4)
+            return q.a;
+        else if (q.b >= result && q.b < result + 4)
+            return q.b;
+        else if (q.c >= result && q.c < result + 4)
+            return q.c;
+        else if (q.d >= result && q.d < result + 4)
+            return q.d;
+        else if (q.e >= result && q.e < result + 4)
+            return q.e;
+        else if (q.f >= result && q.f < result + 4)
+            return q.f;
+
+        return -1;
+    }
+}
+
+internal struct QuadReference
+{
+    public int a, b, c, d, e, f;
+    public bool quality;
+    public bool rotated;
+
+    public QuadReference(Vector3 tri1, Vector3 tri2, bool quality = false, bool rotated = false)
+    {
+        a = (int)tri1.x;
+        b = (int)tri1.y;
+        c = (int)tri1.z;
+        d = (int)tri2.x;
+        e = (int)tri2.y;
+        f = (int)tri2.z;
+        this.quality = quality;
+        this.rotated = rotated;
+    }
+}
