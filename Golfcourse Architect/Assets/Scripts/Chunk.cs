@@ -5,11 +5,6 @@ using System.Linq;
 
 public class Chunk : MonoBehaviour
 {
-    public void UpdateStructure()
-    {
-
-    }
-
     public bool Longest = true;
 
     public Vector2 GlobalPosition;
@@ -17,12 +12,12 @@ public class Chunk : MonoBehaviour
 
     public bool Viable;
 
-    private List<Vector3> vertices = new List<Vector3>();
-    private Vector3[] normals;
-    private int[] triangles;
-    private Vector2[] uv;
+    internal List<Vector3> vertices = new List<Vector3>();
+    internal Vector3[] normals;
+    public int[] triangles;
+    internal Vector2[] uv;
 
-    private int dupeVertCount = 8;
+    internal int dupeVertCount = 8;
     private int tileTexSize = 8;
 
     public Mesh mesh;
@@ -34,16 +29,9 @@ public class Chunk : MonoBehaviour
 
     public ChunkData data;
 
-    public void Start()
-    {
-        data = new ChunkData(this);
-
-        Build(data);
-    }
-
     public void ApplyMesh()
     {
-        foreach(MeshFilter f in filters)
+        foreach (MeshFilter f in filters)
         {
             f.mesh = mesh;
         }
@@ -55,26 +43,27 @@ public class Chunk : MonoBehaviour
         {
             for (int x = 0; x < Size.x + 1; x++)
             {
-                //try
-                //{
+                try
+                {
                     int vert = getVertByXY(x, y);
 
-                    for(int c = 0; c < dupeVertCount; c++)
+                    for (int c = 0; c < dupeVertCount; c++)
                     {
                         vertices[vert + c] = new Vector3(vertices[vert + c].x, data[x, y].elevation, vertices[vert + c].z);
                     }
-                //}
-               // catch
-                //{ }
+                }
+                catch
+                { }
             }
         }
-
 
         RebuildTriangleStructure();
         mesh.vertices = vertices.ToArray();
         mesh.SetUVs(0, uv.ToList());
         mesh.triangles = triangles;
         mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        mesh.RecalculateTangents();
         ApplyMesh();
         GetComponent<MeshCollider>().sharedMesh = mesh;
     }
@@ -85,7 +74,7 @@ public class Chunk : MonoBehaviour
         Texture2D texL1 = L1.material.mainTexture as Texture2D;
         Texture2D texL2 = L2.material.mainTexture as Texture2D;
 
-        if(texL0 == null)
+        if (texL0 == null)
         {
             texL0 = new Texture2D(tileTexSize * (int)Size.x, tileTexSize * (int)Size.y);
             L0.material.SetTexture(0, texL0);
@@ -120,7 +109,7 @@ public class Chunk : MonoBehaviour
 
         L0.material.SetTexture("_MainTex", texL0);
         L1.material.SetTexture("_MainTex", texL1);
-        L2.material.SetTexture("_MainTex", texL2);   
+        L2.material.SetTexture("_MainTex", texL2);
 
         texL0.Apply();
         texL1.Apply();
@@ -209,6 +198,7 @@ public class Chunk : MonoBehaviour
         mesh.uv = uv;
         mesh.triangles = triangles;
         mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
         mesh.RecalculateTangents();
         ApplyMesh();
         BuildTexture();
@@ -241,91 +231,68 @@ public class Chunk : MonoBehaviour
                 try
                 {
                     QuadReference q = TriangleQuadDict[new Vector2(x, y)];
-                    if (q.quality == false)
+
+                    Vector3 A, B, C, D;
+
+                    if (q.rotated)
                     {
-                        if (Longest)
+                        A = vertices[q.a];
+                        B = vertices[q.c];
+                        C = vertices[q.f];
+                        D = vertices[q.b];
+                    }
+                    else
+                    {
+                        A = vertices[q.a];
+                        B = vertices[q.f];
+                        C = vertices[q.c];
+                        D = vertices[q.e];
+                    }
+
+                    if (!Longest)
+                    {
+                        if (q.rotated)
                         {
-                            if (Vector3.Distance(vertices[q.a], vertices[q.f]) > Vector3.Distance(vertices[q.c], vertices[q.e]))
+                            if (Vector3.Distance(A, B) > Vector3.Distance(C, D))
                             {
-                                if (!q.rotated)
-                                {
-                                    RotateQuad(new Vector2(x, y));
-                                    q.quality = true;
-                                    q.rotated = true;
-                                }
-                                else
-                                {
-                                    RotateQuad(new Vector2(x, y), true);
-                                    q.quality = true;
-                                    q.rotated = false;
-                                }
+                                RotateQuad(new Vector2(x, y), q.rotated);
                             }
                         }
-                        if (!Longest)
+                        else
                         {
-                            if (Vector3.Distance(vertices[q.a], vertices[q.f]) < Vector3.Distance(vertices[q.c], vertices[q.e]))
+                            if (Vector3.Distance(A, B) < Vector3.Distance(C, D))
                             {
-                                if (!q.rotated)
-                                {
-                                    RotateQuad(new Vector2(x, y));
-                                    q.quality = true;
-                                    q.rotated = true;
-                                }
-                                else
-                                {
-                                    RotateQuad(new Vector2(x, y), true);
-                                    q.quality = true;
-                                    q.rotated = false;
-                                }
+                                RotateQuad(new Vector2(x, y), q.rotated);
                             }
                         }
                     }
-
-                    TriangleQuadDict[new Vector2(x, y)] = q;
+                    else
+                    {
+                        if (q.rotated)
+                        {
+                            if (Vector3.Distance(A, B) < Vector3.Distance(C, D))
+                            {
+                                RotateQuad(new Vector2(x, y), q.rotated);
+                            }
+                        }
+                        else
+                        {
+                            if (Vector3.Distance(A, B) > Vector3.Distance(C, D))
+                            {
+                                RotateQuad(new Vector2(x, y), q.rotated);
+                            }
+                        }
+                        Debug.DrawLine(A, B, Color.red, 0.1f);
+                        Debug.DrawLine(C, D, Color.blue, 0.1f);
+                    }
                 }
                 catch { }
             }
         }
     }
 
-    private void RebuildNormals()
-    {
-        for (int i = 0; i < triangles.Length; i += 3)
-        {
-
-            int tri0 = triangles[i];
-            int tri1 = triangles[i + 1];
-            int tri2 = triangles[i + 2];
-            Vector3 vert0 = vertices[tri0];
-            Vector3 vert1 = vertices[tri1];
-            Vector3 vert2 = vertices[tri2];
-
-            Vector3 normal = new Vector3()
-            {
-                x = vert0.y * vert1.z - vert0.y * vert2.z - vert1.y * vert0.z + vert1.y * vert2.z + vert2.y * vert0.z - vert2.y * vert1.z,
-                y = -vert0.x * vert1.z + vert0.x * vert2.z + vert1.x * vert0.z - vert1.x * vert2.z - vert2.x * vert0.z + vert2.x * vert1.z,
-                z = vert0.x * vert1.y - vert0.x * vert2.y - vert1.x * vert0.y + vert1.x * vert2.y + vert2.x * vert0.y - vert2.x * vert1.y
-            };
-            normals[tri0] += normal;
-            normals[tri1] += normal;
-            normals[tri2] += normal;
-        }
-
-        for (int i = 0; i < normals.Length; i++)
-        {
-            // normals [i] = Vector3.Normalize (normals [i]);
-            Vector3 norm = normals[i];
-            float invlength = 1.0f / (float)System.Math.Sqrt(norm.x * norm.x + norm.y * norm.y + norm.z * norm.z);
-            normals[i].x = norm.x * invlength;
-            normals[i].y = norm.y * invlength;
-            normals[i].z = norm.z * invlength;
-        }
-    }
-
     private void RotateQuad(Vector2 pos, bool invert = false)
     {
-        Debug.Log("Rotating quad at " + pos + ". Inverted: " + invert);
-
         if (!invert)
         {
             try
@@ -347,6 +314,18 @@ public class Chunk : MonoBehaviour
                 triangles[offset + 3] = checkoutUniqueVertByXY((int)pos.x, (int)pos.y);
                 triangles[offset + 4] = checkoutUniqueVertByXY((int)pos.x + 1, (int)pos.y + 1);
                 triangles[offset + 5] = checkoutUniqueVertByXY((int)pos.x + 1, (int)pos.y);
+
+                q.a = triangles[offset];
+                q.b = triangles[offset + 1];
+                q.c = triangles[offset + 2];
+                q.d = triangles[offset + 3];
+                q.e = triangles[offset + 4];
+                q.f = triangles[offset + 5];
+
+                q.quality = true;
+                q.rotated = !invert;
+
+                TriangleQuadDict[pos] = q;
             }
             catch
             { }
@@ -372,6 +351,18 @@ public class Chunk : MonoBehaviour
                 triangles[offset + 3] = checkoutUniqueVertByXY((int)pos.x + 1, (int)pos.y);
                 triangles[offset + 4] = checkoutUniqueVertByXY((int)pos.x, (int)pos.y + 1);
                 triangles[offset + 5] = checkoutUniqueVertByXY((int)pos.x + 1, (int)pos.y + 1);
+
+                q.a = triangles[offset];
+                q.b = triangles[offset + 1];
+                q.c = triangles[offset + 2];
+                q.d = triangles[offset + 3];
+                q.e = triangles[offset + 4];
+                q.f = triangles[offset + 5];
+
+                q.quality = true;
+                q.rotated = !invert;
+
+                TriangleQuadDict[pos] = q;
             }
             catch
             { }
@@ -445,11 +436,11 @@ public class Chunk : MonoBehaviour
         catch { }
     }
 
-    private int getVertByXY(int x, int y)
+    internal int getVertByXY(int x, int y)
     {
-        if (x < 0 || x > Size.x + 1)
+        if (x < 0 || x > Size.x + 2)
             return -1;
-        if (y < 0 || y > Size.y + 1)
+        if (y < 0 || y > Size.y + 2)
             return -1;
 
         int result = ((x * dupeVertCount) + (y * dupeVertCount * ((int)Size.x + 1)));
@@ -479,6 +470,23 @@ public class Chunk : MonoBehaviour
             return q.f;
 
         return -1;
+    }
+
+    internal QuadReference quadFromXY(int x, int y)
+    {
+        return TriangleQuadDict[new Vector2(x, y)];
+    }
+
+    internal void SetQuad(QuadReference q, int x, int y)
+    {
+        try
+        {
+            TriangleQuadDict[new Vector2(x, y)] = q;
+        }
+        catch
+        {
+            TriangleQuadDict.Add(new Vector2(x, y), q);
+        }
     }
 }
 

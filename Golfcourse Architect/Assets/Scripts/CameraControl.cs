@@ -146,7 +146,7 @@ public class CameraControl : MonoBehaviour
     Vector2 lastMousePosition = Vector2.zero;
     public void HandleCameraRotation()
     {
-        if (Input.GetMouseButton(1))
+        if (Input.GetMouseButton(2))
         {
             Vector2 mouseVelocity = new Vector2(lastMousePosition.x - Input.mousePosition.x, lastMousePosition.y - Input.mousePosition.y);
 

@@ -13,14 +13,17 @@ public class ChunkData
     public ChunkData(Chunk chunk)
     {
         source = chunk;
+    }
 
-        for(int y = 0; y < chunk.Size.y + 1; y++)
+    public void Init(Chunk chunk)
+    {
+        for (int y = 0; y < chunk.Size.y + 1; y++)
         {
             data.Add(new List<ChunkDataPoint>());
 
-            for(int x = 0; x < chunk.Size.x + 1; x++)
+            for (int x = 0; x < chunk.Size.x + 1; x++)
             {
-                if(x == chunk.Size.x || y == chunk.Size.y)
+                if (x == chunk.Size.x || y == chunk.Size.y)
                     data[y].Add(new ChunkDataPoint() { elevation = 0, type = new Max_Bounds() }); //Vertices that are not parents for tiles (max bounds)
                 else
                     data[y].Add(new ChunkDataPoint() { elevation = 0, type = new Rough_Standard() });
@@ -39,11 +42,23 @@ public class ChunkData
 
     public void SetElevation(int x, int y, float e)
     {
-        data[y][x] = new ChunkDataPoint()
+        try
         {
-            elevation = e,
-            type = data[y][x].type
-        };
+            data[y][x] = new ChunkDataPoint()
+            {
+                elevation = e,
+                type = data[y][x].type
+            };
+        }
+        catch
+        {
+            int start = source.getVertByXY(x, y);
+
+            for(int i = 0; i < source.dupeVertCount; i++)
+            {
+                source.vertices[start + i] = new Vector3(source.vertices[start + 1].x, e, source.vertices[start + 1].z);
+            }
+        }
     }
 
     public ChunkDataPoint this[int x, int y]

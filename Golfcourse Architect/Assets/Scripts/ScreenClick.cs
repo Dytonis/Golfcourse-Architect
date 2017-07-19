@@ -68,7 +68,7 @@ public class ScreenClick : MonoBehaviour
                     c = Family.chunkList[(int)c.GlobalPosition.x + 1, (int)c.GlobalPosition.y];
                 }
 
-                if ((hit.point.y) % (c.Size.y) >= c.Size.y - 0.5f) //near boundry, need to switch tiles to next chunk over
+                if ((hit.point.z) % (c.Size.y) >= c.Size.y - 0.5f) //near boundry, need to switch tiles to next chunk over
                 {
                     c = Family.chunkList[(int)c.GlobalPosition.x, (int)c.GlobalPosition.y + 1];
                 }
@@ -78,6 +78,7 @@ public class ScreenClick : MonoBehaviour
                     float newElevation = c.data[(int)vertex.x, (int)vertex.y].elevation + (0.3f * Time.deltaTime);
                     c.data.SetElevation((int)vertex.x, (int)vertex.y, newElevation);
                     Family.BridgeSameVertexHeight((int)c.GlobalPosition.x, (int)c.GlobalPosition.y, (int)vertex.x, (int)vertex.y, newElevation);
+                    //Family.CauseRevalidationAroundTile((int)c.GlobalPosition.x, (int)c.GlobalPosition.y, (int)vertex.x, (int)vertex.y, Mathf.Sqrt(2f) + 0.1f);
                     c.FastBuild(c.data);
                 }
                 if (Input.GetMouseButton(1))
@@ -85,6 +86,7 @@ public class ScreenClick : MonoBehaviour
                     float newElevation = c.data[(int)vertex.x, (int)vertex.y].elevation + (-0.3f * Time.deltaTime);
                     c.data.SetElevation((int)vertex.x, (int)vertex.y, newElevation);
                     Family.BridgeSameVertexHeight((int)c.GlobalPosition.x, (int)c.GlobalPosition.y, (int)vertex.x, (int)vertex.y, newElevation);
+                    //Family.CauseRevalidationAroundTile((int)c.GlobalPosition.x, (int)c.GlobalPosition.y, (int)vertex.x, (int)vertex.y, Mathf.Sqrt(2f) + 0.1f);
                     c.FastBuild(c.data);
                 }
             }
