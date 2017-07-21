@@ -10,6 +10,14 @@ public class ChunkFamily : MonoBehaviour
 
     public Chunk ChunkPrefab;
 
+    public Vector2 globalSize
+    {
+        get
+        {
+            return new Vector2(ChunkPrefab.Size.x * Size.x, ChunkPrefab.Size.y * Size.y);
+        }
+    }
+
     public void Start()
     {
         chunkList = new Chunk[(int)Size.x, (int)Size.y];
@@ -63,10 +71,10 @@ public class ChunkFamily : MonoBehaviour
 
     public void GenerateRandomHeights()
     {
-        float noise;
+        float noise = 0;
         Vector2 start = new Vector2(1111.1f, 1111.1f);
-        float power = 6;
-        float scale = 2;
+        float power = 3;
+        float scale = .9f;
 
         for(int y = 0; y < (Size.y * (ChunkPrefab.Size.y) + 1); y++)
         {
@@ -77,7 +85,7 @@ public class ChunkFamily : MonoBehaviour
                 //if (y % ChunkPrefab.Size.y == 0)
                 //    continue;
 
-                noise = Random.Range(-0.025f, 0.025f);
+                //noise = Random.Range(-0.025f, 0.025f);
 
                 float xCoord = start.x + (x / (float)((int)Size.x * ((int)ChunkPrefab.Size.x)) + 1) * scale;
                 float yCoord = start.y + (y / (float)((int)Size.y * ((int)ChunkPrefab.Size.y)) + 1) * scale;

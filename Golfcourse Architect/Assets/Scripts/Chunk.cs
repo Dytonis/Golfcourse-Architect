@@ -65,6 +65,7 @@ public class Chunk : MonoBehaviour
         mesh.RecalculateBounds();
         mesh.RecalculateTangents();
         ApplyMesh();
+        GetComponent<MeshCollider>().sharedMesh = null;
         GetComponent<MeshCollider>().sharedMesh = mesh;
     }
 
@@ -203,6 +204,7 @@ public class Chunk : MonoBehaviour
         ApplyMesh();
         BuildTexture();
 
+        GetComponent<MeshCollider>().sharedMesh = null;
         GetComponent<MeshCollider>().sharedMesh = mesh;
     }
 
