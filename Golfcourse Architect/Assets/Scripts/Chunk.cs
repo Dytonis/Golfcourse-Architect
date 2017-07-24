@@ -413,6 +413,11 @@ public class Chunk : MonoBehaviour
         return check;
     }
 
+    internal Vector2 globalXYToVertex(float globalX, float globalY)
+    {
+        return new Vector2(Mathf.RoundToInt(globalX) % (Size.x), Mathf.RoundToInt(globalY) % (Size.y));
+    }
+
     private void checkinUniqueVert(int vert)
     {
         try

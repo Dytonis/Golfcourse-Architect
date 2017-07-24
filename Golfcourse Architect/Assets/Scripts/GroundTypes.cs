@@ -11,7 +11,7 @@ namespace GA.Ground
     {
         public abstract int[] spriteChildPath { get; }
         public virtual float bounce { get; set; }
-        public virtual float speed { get; set; }
+        public virtual float friction { get; set; }
         public virtual float price { get; set; }
         public virtual float accuracyMod { get; set; }
         public virtual float distanceMod { get; set; }
@@ -88,6 +88,32 @@ namespace GA.Ground
             }
         }
 
+        public override float friction
+        {
+            get
+            {
+                return 0.45f;
+            }
+
+            set
+            {
+                base.friction = value;
+            }
+        }
+
+        public override float bounce
+        {
+            get
+            {
+                return 0.15f;
+            }
+
+            set
+            {
+                base.bounce = value;
+            }
+        }
+
         public override void OnActivate()
         {
             throw new NotImplementedException();
@@ -105,6 +131,53 @@ namespace GA.Ground
                     (int)GroundSprites.TRANSPARENT,
                     (int)GroundSprites.FAIRWAY_STANDARD,
                     (int)GroundSprites.DARK_PLATE,
+                };
+            }
+        }
+
+        public override void OnActivate()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class Green : GroundType
+    {
+        public override float friction
+        {
+            get
+            {
+                return 0.1f;
+            }
+
+            set
+            {
+                base.friction = value;
+            }
+        }
+
+        public override float bounce
+        {
+            get
+            {
+                return 0.35f;
+            }
+
+            set
+            {
+                base.bounce = value;
+            }
+        }
+
+        public override int[] spriteChildPath
+        {
+            get
+            {
+                return new int[]
+                {
+                    (int)GroundSprites.TRANSPARENT,
+                    (int)GroundSprites.TRANSPARENT,
+                    (int)GroundSprites.GREEN_STANDARD,
                 };
             }
         }
@@ -142,7 +215,7 @@ namespace GA.Ground
         ROUGH_STANDARD = 1,
         FAIRWAY_STANDARD = 0,
         FAIRWAY_FAST = 100,
-        GREEN_STANDARD = 3,
+        GREEN_STANDARD = 2,
         DARK_PLATE = 7
     }
 }

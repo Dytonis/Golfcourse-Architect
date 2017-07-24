@@ -5,13 +5,21 @@ using System.Linq;
 
 public class BallPathSolver : MonoBehaviour
 {
-
     public ChunkFamily family;
     public Vector3 target;
+    public int Level = 900;
 
+    public ShotType type;
     public Ball ball;
     public Vector3 currentPos;
     public Vector3 startingPos;
+
+    public float Carry;
+
+    public ClubStat ClubSelected;
+
+    [SerializeField]
+    public string ClubSelectedName;
 
     public float a;
 
@@ -27,14 +35,56 @@ public class BallPathSolver : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f);
 
-        StartCoroutine(AttemptToFindPutt(8));
+        float gap = Vector3.Distance(startingPos, new Vector3(target.x, startingPos.y, target.z));
+
+        RaycastHit hit;
+        if (Physics.Raycast(new Vector3(target.x, 100, target.z), Vector3.down, out hit, 200))
+        {
+            target = new Vector3(target.x, hit.point.y, target.z);
+        }
+
+        RaycastHit hit2;
+        if (Physics.Raycast(new Vector3(startingPos.x, 100, startingPos.z), Vector3.down, out hit2, 200))
+        {
+            startingPos = new Vector3(startingPos.x, hit2.point.y, startingPos.z);
+        }
+
+        Vector3 heading = new Vector3(target.x, startingPos.y, target.z) - startingPos;
+        Vector3 dir = heading / heading.magnitude;
+        float elevationGain = startingPos.y - target.y;
+        Vector3 carryLocation = heading / (1.10f + elevationGain / 10f);
+        float CarryDistance = Vector3.Distance(startingPos, carryLocation);
+        Carry = CarryDistance * 4;
+
+        ClubSelected = ClubStat.GetClubFromDistance(Level, Carry);
+        ClubSelectedName = ClubSelected.uiname;
+
+        Debug.DrawRay(carryLocation, Vector3.up, Color.yellow, 100f);
+
+        switch (type)
+        {
+            case ShotType.Putt:
+                StartCoroutine(AttemptToFindPutt(8));
+                break;
+            case ShotType.Standard:
+                StartCoroutine(AttemptToFindStandard(10, solverCount: 100, speedRangeMax: 2.9f, speedChecks: 20f));
+                break;
+        }
     }
 
     public void Solved(bool final)
     {
         if(closest > 0.1f && !final)
         {
-            StartCoroutine(AttemptToFindPutt(25, final: true, speedRangeMax: 3.5f, speedRes: 0.01f));
+            switch (type)
+            {
+                case ShotType.Putt:
+                    StartCoroutine(AttemptToFindPutt(25, final: true, speedRangeMax: 3.5f, speedRes: 0.01f));
+                    break;
+                case ShotType.Standard:
+                    StartCoroutine(AttemptToFindStandard(15, final: true, speedChecks: 30f, speedRangeMax: 2.9f, solverCount: 100));
+                    break;
+            }
         }
 
         foreach (Vector3 v in closeList)
@@ -80,8 +130,8 @@ public class BallPathSolver : MonoBehaviour
         {
             for (float s = 0; s < speedRangeMax; s += speedRes, o++)
             {
-                if(o % 50 == 0)
-                    yield return new WaitForSeconds(0);
+                if(o % 40 == 0)
+                    yield return new WaitForEndOfFrame();
                 Vector3 starting = startingPos;
                 heading = new Vector3(target.x, startingPos.y, target.z) - starting;
                 dir = heading / heading.magnitude;
@@ -161,7 +211,7 @@ public class BallPathSolver : MonoBehaviour
         yield break;
     }
 
-    public IEnumerator AttemptToFindStandard(float checkSize, bool final = false)
+    public IEnumerator AttemptToFindStandard(float angularSize = 8, float speedChecks = 0.05f, int angleChecks = 16, float speedRangeMax = 2f, int solverCount = 60, bool final = false)
     {
         float e = startingPos.y;
         RaycastHit hit;
@@ -170,50 +220,133 @@ public class BallPathSolver : MonoBehaviour
             target = new Vector3(target.x, hit.point.y, target.z);
         }
 
+        RaycastHit hit2;
+        if (Physics.Raycast(new Vector3(startingPos.x, 100, startingPos.z), Vector3.down, out hit2, 200))
+        {
+            startingPos = new Vector3(startingPos.x, hit2.point.y, startingPos.z);
+        }
+
         float gap = Vector3.Distance(startingPos, new Vector3(target.x, startingPos.y, target.z));
         float elevationGain = e - startingPos.y;
         Vector3 heading = new Vector3(target.x, startingPos.y, target.z) - startingPos;
         Vector3 dir = heading / heading.magnitude;
 
-        Vector3 landPoint = startingPos + (dir * 0.75f * gap);
-
         Debug.DrawRay(new Vector3(target.x, target.y, target.z), Vector3.up, Color.cyan, 100f);
         Debug.DrawRay(startingPos, dir, Color.white, 100f);
-        Debug.DrawRay(landPoint, Vector3.up, Color.yellow, 100f);
 
         Vector3 velocity = Vector3.one;
+        velocity = Quaternion.AngleAxis(ClubSelected.launchAngle, Vector3.right) * velocity;
+        float spin = 0;
 
-        for (float y = -5f; y < 5f; y += 0.2f)
+        float checkSize = Mathf.Atan(angularSize / (gap * 2)) * (180f/Mathf.PI); //half the angular size in degrees given final size angularSize
+        float angleRes = (checkSize * 2) / angleChecks; //the entire angular size included in resolution calculation
+
+        float sStart = (Carry / 800f);
+        float sMax = (Carry / 100f);
+
+        float res = (sMax - sStart) / speedChecks;
+
+        for (float d = -checkSize, o = 0; d < checkSize; d += angleRes)
         {
-            for (float x = -5f; x < 5f; x += 0.2f)
+            for (float s = sStart, sn = (s - sStart) / (sMax - sStart); s < sMax; s += res, o++, sn = (s - sStart ) / (sMax - sStart))
             {
+                //if (o % 50 == 0)
+                //  yield return new WaitForEndOfFrame();
                 yield return new WaitForEndOfFrame();
+                if (sn > 1)
+                    sn = 1;
 
-                Vector3 starting = new Vector3(landPoint.x + x, landPoint.y, landPoint.z + y);
-                heading = starting - startingPos;
+                Vector3 starting = startingPos;
+                heading = new Vector3(target.x, startingPos.y, target.z) - starting;
                 dir = heading / heading.magnitude;
-                velocity = 1 * dir;
+
+                dir = Quaternion.Euler(new Vector3(0, d, 0)) * dir;
+
+                Debug.DrawRay(starting, dir * 10, Color.magenta, 10f);
+
+                velocity = ((100 / gap) * s) * dir;
+                velocity = new Vector3(velocity.x, 0, velocity.z);
+                Debug.DrawRay(startingPos, velocity.normalized, Color.red, 10f);
+                Vector3 axis = Quaternion.Euler(new Vector3(0, -90, 0)) * dir;
+                velocity = Quaternion.AngleAxis(ClubSelected.launchAngle, axis) * velocity;
+                Debug.DrawRay(startingPos, velocity.normalized, Color.red, 10f);
+                spin = ClubStat.GetSpin(ClubSelected, Level);
+                spin = spin * sn;
                 Vector3 position = starting;
-
                 list.Clear();
+                bool detectedLastFrame = false;
 
-                for (int i = 0; i < 30; i++)
+                for (int i = 0; i < solverCount; i++)
                 {
-                    SlopePackage slope = GetAccelUnder(position.x, position.z);
+                    SlopePackage slope = GetAccelUnder(position.x, position.z, position.y + 0.1f, 0.25f - velocity.y);
                     RaycastHit rhit = slope.hit;
-                    velocity += slope.dirNormalized * (slope.magnitude / 100);
 
-                    velocity -= (velocity * 0.1f);
-                    if (velocity.magnitude <= 0.05f)
+                    if (slope.detected)
+                    {
+                        //GROUNDED
+                        velocity += slope.dirNormalized * (slope.magnitude / 100);
+                        position.Set(position.x, slope.hit.point.y, position.z);
+                        velocity *= 1 - slope.groundType.friction;
+
+                        //bounce
+                        if (velocity.y < -0.01f)
+                            velocity.Set(velocity.x, -velocity.y * slope.groundType.bounce, velocity.z);
+                        else if (velocity.y < 0)
+                            velocity.Set(velocity.x, 0, velocity.z);
+                        /////////
+
+                        if (detectedLastFrame == false)
+                        {
+                            //first frame detection
+                            //position += velocity * 1f;
+                            position.Set(position.x, slope.hit.point.y, position.z);
+                            list.Add(position);
+                            Debug.DrawRay(position, Vector3.up * ((spin + 500) / 5000f), Color.blue, 0.001f);
+                        }
+                        else
+                        {
+                            //continued
+                            velocity -= dir * (spin / 80000f);
+                            spin -= spin * 0.075f;
+                            if (spin < 1000)
+                                spin = 0;
+                        }
+                    }
+                    else
+                    {
+                        //IN THE AIR
+                        spin -= spin * (0.02f);
+                        float spinAffector = ((spin) - 4000) / 4000;
+                        if (spinAffector < 0)
+                            spinAffector = 0;
+
+                        velocity.Set(velocity.x, velocity.y + (((spinAffector * 0.5f) + 0.5f) * (new Vector3(velocity.x, 0, velocity.z).sqrMagnitude / 20)), velocity.z);
+                        velocity.Set(velocity.x, velocity.y -= (9.81f / 100f), velocity.z);
+
+
+                        velocity -= (velocity.normalized * (0.02f) * (velocity.sqrMagnitude)); //air resistance
+                    }
+                    detectedLastFrame = slope.detected;
+
+                    if (velocity.magnitude <= 0.01f)
                         velocity = Vector3.zero;
 
                     position += velocity * 1f;
 
-                    position = new Vector3(position.x, rhit.point.y, position.z);
+                    if (position.x < 0)
+                        break;
+                    if (position.z < 0)
+                        break;
 
+                    if (position.x > family.globalSize.x)
+                        break;
+                    if (position.z > family.globalSize.y)
+                        break;
+
+                    Debug.DrawRay(position, Vector3.up * ((spin + 500) / 5000f), Color.blue, 0.001f);
                     list.Add(position);
                     float distance = Vector3.Distance(position, target);
-                    if (velocity.magnitude <= 0.05f || i == 29 || distance <= 0.1f)
+                    if ((velocity.magnitude <= 0.15f && distance <= 0.1f) || i == solverCount - 1)
                     {
                         if (distance < closest)
                         {
@@ -226,31 +359,32 @@ public class BallPathSolver : MonoBehaviour
                             break;
                         }
                     }
+                }
 
-
-                    if (closest <= 0.1f)
-                    {
-                        this.points = closeList;
-                        Solved(final);
-                        yield break;
-                    }
+                if (closest <= 0.1f)
+                {
+                    this.points = closeList;
+                    Solved(final);
+                    yield break;
                 }
             }
         }
-
         this.points = closeList;
         Solved(final);
-
         yield break;
     }
 
-    private SlopePackage GetAccelUnder(float x, float y)
+    private SlopePackage GetAccelUnder(float x, float y, float elevation = 100, float distance = 200)
     {
         Vector3 normalUnder = Vector3.up;
         RaycastHit hit;
-        if (Physics.Raycast(new Vector3(x, 100, y), Vector3.down, out hit, 200))
+        bool h = false;
+        Chunk c = null;
+        if (Physics.Raycast(new Vector3(x, elevation, y), Vector3.down, out hit, distance))
         {
             normalUnder = hit.normal;
+            h = true;
+            c = hit.collider.GetComponent<Chunk>();
         }
         float angle = Vector3.Angle(normalUnder, Vector3.up);
 
@@ -258,15 +392,26 @@ public class BallPathSolver : MonoBehaviour
 
         float accel = sinOfAngle * ball.gravity;
         Vector3 accelDirection = new Vector3(normalUnder.x, 0, normalUnder.z).normalized;
+      
+        GA.Ground.GroundType type = new GA.Ground.Rough_Standard();
+
+        if(c != null)
+        {
+            Vector2 v = c.globalXYToVertex(hit.point.x, hit.point.z);
+            type = c.data[(int)v.x, (int)v.y].type;            
+        }
+
         return new SlopePackage()
         {
             dirNormalized = accelDirection,
             hit = hit,
-            magnitude = accel
+            magnitude = accel,
+            detected = h,
+            groundType = type,
         };
     }
 
-    private RaycastHit GetRaycastPoint(float x, float y)
+    private RaycastHit GetRaycastPoint(float x, float y, float distance = 200)
     {
         RaycastHit hit;
 
@@ -331,6 +476,8 @@ public class BallPathSolver : MonoBehaviour
 
 public struct SlopePackage
 {
+    public GA.Ground.GroundType groundType;
+    public bool detected;
     public Vector3 dirNormalized;
     public float magnitude;
     public RaycastHit hit;

@@ -26,7 +26,7 @@ public class ChunkData
                 if (x == chunk.Size.x || y == chunk.Size.y)
                     data[y].Add(new ChunkDataPoint() { elevation = 0, type = new Max_Bounds() }); //Vertices that are not parents for tiles (max bounds)
                 else
-                    data[y].Add(new ChunkDataPoint() { elevation = 0, type = new Rough_Standard() });
+                    data[y].Add(new ChunkDataPoint() { elevation = 0, type = new Green() });
             }
         }
     }

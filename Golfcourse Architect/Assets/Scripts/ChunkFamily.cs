@@ -43,7 +43,7 @@ public class ChunkFamily : MonoBehaviour
         }
 
         BuildAllChunks();
-        GenerateRandomHeights();
+        //GenerateRandomHeights();
         FastBuildAllChunks();
     }
 
@@ -73,7 +73,7 @@ public class ChunkFamily : MonoBehaviour
     {
         float noise = 0;
         Vector2 start = new Vector2(1111.1f, 1111.1f);
-        float power = 3;
+        float power = 8;
         float scale = .9f;
 
         for(int y = 0; y < (Size.y * (ChunkPrefab.Size.y) + 1); y++)
