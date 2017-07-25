@@ -62,7 +62,7 @@ public class ClubStat
             }
         }
 
-        return null;
+        return new Wood_1();
     }
 
     public static ClubStat[] ListOfAllClubs

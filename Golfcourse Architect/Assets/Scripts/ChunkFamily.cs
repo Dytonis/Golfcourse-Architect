@@ -43,7 +43,7 @@ public class ChunkFamily : MonoBehaviour
         }
 
         BuildAllChunks();
-        //GenerateRandomHeights();
+        GenerateRandomHeights();
         FastBuildAllChunks();
     }
 
