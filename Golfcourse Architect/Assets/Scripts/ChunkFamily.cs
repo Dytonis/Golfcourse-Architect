@@ -112,11 +112,17 @@ public class ChunkFamily : MonoBehaviour
 
         Vector2 local = LocalPositionFromChunkSize(x, y);
 
-        if (x == 15)
-            Debug.Log("15");
-
         c.data.SetElevation((int)local.x, (int)local.y, newElevation);
         BridgeSameVertexHeight((int)c.GlobalPosition.x, (int)c.GlobalPosition.y, (int)local.x, (int)local.y, newElevation);
+    }
+
+    public float GetChunkDataPointElevationGlobally(int x, int y)
+    {
+        Chunk c = chunkFromGlobalTilePos(x, y);
+
+        Vector2 local = LocalPositionFromChunkSize(x, y);
+
+        return c.data[(int)local.x, (int)local.y].elevation;
     }
 
     public void ModifyChunkDataPointTypeGlobally(int x, int y, GA.Ground.GroundType type)
@@ -125,7 +131,16 @@ public class ChunkFamily : MonoBehaviour
 
         Vector2 local = LocalPositionFromChunkSize(x, y);
 
-        c.data.SetGroundType(x, y, type);
+        c.data.SetGroundType((int)local.x, (int)local.y, type);
+    }
+
+    public GA.Ground.GroundType GetChunkDataPointGroundTypeGlobally(int x, int y)
+    {
+        Chunk c = chunkFromGlobalTilePos(x, y);
+
+        Vector2 local = LocalPositionFromChunkSize(x, y);
+
+        return c.data[(int)local.x, (int)local.y].type;
     }
 
     public Chunk chunkFromGlobalTilePos(int globalTileX, int globalTileY)

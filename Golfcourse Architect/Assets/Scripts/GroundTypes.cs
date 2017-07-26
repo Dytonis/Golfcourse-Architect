@@ -119,7 +119,6 @@ namespace GA.Ground
             throw new NotImplementedException();
         }
     }
-
     public class Fairway : GroundType
     {
         public override int[] spriteChildPath
@@ -140,7 +139,6 @@ namespace GA.Ground
             throw new NotImplementedException();
         }
     }
-
     public class Green : GroundType
     {
         public override float friction
@@ -187,7 +185,6 @@ namespace GA.Ground
             throw new NotImplementedException();
         }
     }
-
     public class Max_Bounds : GroundType
     {
         public override int[] spriteChildPath
@@ -208,6 +205,52 @@ namespace GA.Ground
             return;
         }
     }
+    public class Concrete : GroundType
+    {
+        public override float friction
+        {
+            get
+            {
+                return 0.1f;
+            }
+
+            set
+            {
+                base.friction = value;
+            }
+        }
+
+        public override float bounce
+        {
+            get
+            {
+                return 0.95f;
+            }
+
+            set
+            {
+                base.bounce = value;
+            }
+        }
+
+        public override int[] spriteChildPath
+        {
+            get
+            {
+                return new int[]
+                {
+                    (int)GroundSprites.TRANSPARENT,
+                    (int)GroundSprites.CONCRETE,
+                    (int)GroundSprites.CONCRETE,
+                };
+            }
+        }
+
+        public override void OnActivate()
+        {
+            throw new NotImplementedException();
+        }
+    }
 
     public enum GroundSprites
     {
@@ -216,6 +259,7 @@ namespace GA.Ground
         FAIRWAY_STANDARD = 0,
         FAIRWAY_FAST = 100,
         GREEN_STANDARD = 2,
-        DARK_PLATE = 7
+        DARK_PLATE = 7,
+        CONCRETE = 9,
     }
 }

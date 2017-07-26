@@ -146,7 +146,7 @@ public class CameraControl : MonoBehaviour
     Vector2 lastMousePosition = Vector2.zero;
     public void HandleCameraRotation()
     {
-        if (Input.GetMouseButton(2))
+        if (Input.GetMouseButton(1))
         {
             Vector2 mouseVelocity = new Vector2(lastMousePosition.x - Input.mousePosition.x, lastMousePosition.y - Input.mousePosition.y);
 
@@ -165,8 +165,8 @@ public class CameraControl : MonoBehaviour
 
         if (VerticalRotator.transform.eulerAngles.z >= 179)
             VerticalRotator.transform.eulerAngles = new Vector3(90, VerticalRotator.transform.rotation.eulerAngles.y, VerticalRotator.transform.rotation.eulerAngles.z);
-        if (VerticalRotator.transform.eulerAngles.x < 15)
-            VerticalRotator.transform.eulerAngles = new Vector3(15, VerticalRotator.transform.rotation.eulerAngles.y, VerticalRotator.transform.rotation.eulerAngles.z);
+        if (VerticalRotator.transform.eulerAngles.x < 25)
+            VerticalRotator.transform.eulerAngles = new Vector3(25, VerticalRotator.transform.rotation.eulerAngles.y, VerticalRotator.transform.rotation.eulerAngles.z);
 
         lastMousePosition = Input.mousePosition;
     }

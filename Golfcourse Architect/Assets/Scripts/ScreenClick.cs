@@ -96,6 +96,7 @@ public class ScreenClick : MonoBehaviour
 
 public enum ClickType
 {
+    NONE,
     PLACE_TILE_FAIRWAY,
     EULER_VERTEX,
     EULER_FACE,

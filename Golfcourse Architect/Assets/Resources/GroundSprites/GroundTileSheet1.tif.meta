@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: b66e46076bab98641a730170dd58d5dd
-timeCreated: 1500330378
+timeCreated: 1501037804
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -1211,6 +1211,19 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
+        y: 0
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: GroundTileSheet1_9
+      rect:
+        serializedVersion: 2
+        x: 72
         y: 0
         width: 8
         height: 8
