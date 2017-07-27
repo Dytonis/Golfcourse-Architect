@@ -19,7 +19,7 @@ public class Building : MonoBehaviour
 
     public IEnumerator waiter()
     {
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(5);
         StartCoroutine(PlaceBuilding(40, 40));
     }
 
@@ -75,12 +75,14 @@ public class Building : MonoBehaviour
                 continue;
             if (p.z >= maxY - 1)
                 continue;
-            family.ModifyChunkDataPointTypeGlobally((int)p.x, (int)p.z, new GA.Ground.Concrete());     
+            family.ModifyChunkDataPointTypeGlobally((int)p.x, (int)p.z, new GA.Ground.Concrete());
+            family.ModifyChunkDataObjectIDGlobally((int)p.x, (int)p.z, ObjectID.EMPTY);   
         }
 
         foreach(Chunk c in uniqueChunks)
         {
             c.FastBuild(c.data);
+            c.UpdateObjects(c.data);
             yield return new WaitForEndOfFrame();
             c.BuildTexture();
         }

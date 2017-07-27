@@ -26,7 +26,9 @@ public class ChunkData
                 if (x == chunk.Size.x || y == chunk.Size.y)
                     data[y].Add(new ChunkDataPoint() { elevation = 0, type = new Max_Bounds() }); //Vertices that are not parents for tiles (max bounds)
                 else
+                {
                     data[y].Add(new ChunkDataPoint() { elevation = 0, type = new Rough_Standard() });
+                }
             }
         }
     }
@@ -36,7 +38,18 @@ public class ChunkData
         data[y][x] = new ChunkDataPoint()
         {
             elevation = data[y][x].elevation,
-            type = groundType
+            type = groundType,
+            ObjectResiding = data[y][x].ObjectResiding
+        };
+    }
+
+    public void SetObjectID(int x, int y, ObjectID id)
+    {
+        data[y][x] = new ChunkDataPoint()
+        {
+            elevation = data[y][x].elevation,
+            type = data[y][x].type,
+            ObjectResiding = id
         };
     }
 
@@ -47,7 +60,8 @@ public class ChunkData
             data[y][x] = new ChunkDataPoint()
             {
                 elevation = e,
-                type = data[y][x].type
+                type = data[y][x].type,
+                ObjectResiding = data[y][x].ObjectResiding
             };
         }
         catch
@@ -83,7 +97,8 @@ public class ChunkData
                     data[y][x] = new ChunkDataPoint()
                     {
                         elevation = value.elevation,
-                        type = value.type
+                        type = value.type,
+                        ObjectResiding = data[y][x].ObjectResiding
                     };
                     return;
                 }
@@ -97,4 +112,5 @@ public struct ChunkDataPoint
 {
     public float elevation { get; set; }
     public GroundType type { get; set; }
+    public ObjectID ObjectResiding { get; set; }
 }

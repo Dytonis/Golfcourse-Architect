@@ -37,14 +37,26 @@ public class ChunkFamily : MonoBehaviour
                 c.GlobalPosition = new Vector2(x, y);
                 c.data = new ChunkData(c);
                 c.data.Init(c);
-
                 chunkList[x, y] = c;
             }
         }
 
         BuildAllChunks();
         GenerateRandomHeights();
+        GenerateRandomNature();
         FastBuildAllChunks();
+        StartCoroutine(InitialPlaceOfObjects());
+    }
+
+    public IEnumerator InitialPlaceOfObjects()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        foreach(Chunk c in chunkList)
+        {
+            c.PlaceAllObjectsPrimitive(c.data);
+            yield return new WaitForEndOfFrame();
+        }
     }
 
     public void BuildAllChunks()
@@ -97,6 +109,41 @@ public class ChunkFamily : MonoBehaviour
         }
     }
 
+    public void GenerateRandomNature()
+    {
+        float noise = 0;
+        Vector2 start = new Vector2(1111.1f, 1111.1f);
+        float power = 8;
+        float scale = 4f;
+        float threshold = 4f;
+
+        for (int y = 0; y < (Size.y * (ChunkPrefab.Size.y) + 1); y += 2)
+        {
+            for (int x = 0; x < (Size.x * (ChunkPrefab.Size.x) + 1); x += 2)
+            {
+                //if (x % ChunkPrefab.Size.x == 0)
+                //    continue;
+                //if (y % ChunkPrefab.Size.y == 0)
+                //    continue;
+
+                //noise = Random.Range(-0.025f, 0.025f);
+
+                float xCoord = start.x + (x / (float)((int)Size.x * ((int)ChunkPrefab.Size.x)) + 1) * scale;
+                float yCoord = start.y + (y / (float)((int)Size.y * ((int)ChunkPrefab.Size.y)) + 1) * scale;
+
+                float e = Mathf.PerlinNoise(xCoord, yCoord) * power + noise;
+
+                if(e >= threshold && Random.Range((int)0, 8) >= 3)
+                    ModifyChunkDataObjectIDGlobally(x, y, ObjectID.NATURE_TREE_TEMPORATE1);
+                else
+                {
+                    if(Random.Range(0f, 40f) >= 39)
+                        ModifyChunkDataObjectIDGlobally(x, y, ObjectID.NATURE_TREE_TEMPORATE1);
+                }
+            }
+        }
+    }
+
     public void ModifyChunkDataGlobally(int x, int y, ChunkDataPoint newData)
     {
         Chunk c = chunkFromGlobalTilePos(x, y);
@@ -132,6 +179,15 @@ public class ChunkFamily : MonoBehaviour
         Vector2 local = LocalPositionFromChunkSize(x, y);
 
         c.data.SetGroundType((int)local.x, (int)local.y, type);
+    }
+
+    public void ModifyChunkDataObjectIDGlobally(int x, int y, ObjectID id)
+    {
+        Chunk c = chunkFromGlobalTilePos(x, y);
+
+        Vector2 local = LocalPositionFromChunkSize(x, y);
+
+        c.data.SetObjectID((int)local.x, (int)local.y, id);
     }
 
     public GA.Ground.GroundType GetChunkDataPointGroundTypeGlobally(int x, int y)

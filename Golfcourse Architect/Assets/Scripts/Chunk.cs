@@ -11,7 +11,7 @@ public class Chunk : MonoBehaviour
     public Vector2 Size;
 
     public bool Viable;
-
+    public Dictionary<Vector2, NatureObject> NatureObjects = new Dictionary<Vector2, NatureObject>();
     internal List<Vector3> vertices = new List<Vector3>();
     internal Vector3[] normals;
     public int[] triangles;
@@ -118,6 +118,65 @@ public class Chunk : MonoBehaviour
     }
 
     private Dictionary<Vector2, QuadReference> TriangleQuadDict = new Dictionary<Vector2, QuadReference>();
+
+    public void PlaceAllObjectsPrimitive(ChunkData data)
+    {
+        for(int y = 0; y < Size.y; y++)
+        {
+            for(int x = 0; x < Size.x; x++)
+            {
+                if(data[x, y].ObjectResiding != ObjectID.EMPTY)
+                {
+                    Vector2 globalPos = getGlobalPointFromLocal(x, y);
+                    Vector3 pos = new Vector3(globalPos.x + 0.5f, getElevationUnderPointLocal(x + 0.5f, y + 0.5f), globalPos.y + 0.5f);
+
+                    NatureObject o = Instantiate(NatureObject.GetObjectPrefabFromID(data[x, y].ObjectResiding), pos, transform.rotation);
+                    o.transform.SetParent(transform);
+                    o.source = this;
+                    o.localPosition = new Vector2(x, y);
+                    o.transform.localScale = new Vector3(Random.Range(0.8f, 1.2f), Random.Range(0.8f, 1.2f), Random.Range(0.8f, 1.2f));
+                    o.transform.rotation = Quaternion.Euler(new Vector3(0, Random.Range(0, 360f), 0));
+                    NatureObjects.Add(o.localPosition, o);
+                }
+            }
+        }
+    }
+
+    public void UpdateObjects(ChunkData data)
+    {
+        for (int y = 0; y < Size.y; y++)
+        {
+            for (int x = 0; x < Size.x; x++)
+            {
+                ObjectID currentID = data[x, y].ObjectResiding;
+                try
+                {
+                    if (NatureObjects[new Vector2(x, y)].objectID != currentID)
+                    {
+                        Destroy(NatureObjects[new Vector2(x, y)].gameObject);
+
+                        if (currentID != ObjectID.EMPTY)
+                        {
+                            Vector2 globalPos = getGlobalPointFromLocal(x, y);
+                            Vector3 pos = new Vector3(globalPos.x + 0.5f, getElevationUnderPointLocal(x + 0.5f, y + 0.5f), globalPos.y + 0.5f);
+
+                            NatureObject o = Instantiate(NatureObject.GetObjectPrefabFromID(currentID), pos, transform.rotation);
+                            o.transform.SetParent(transform);
+                            o.source = this;
+                            o.localPosition = new Vector2(x, y);
+                            o.transform.localScale = new Vector3(Random.Range(0.8f, 1.2f), Random.Range(0.8f, 1.2f), Random.Range(0.8f, 1.2f));
+                            o.transform.rotation = Quaternion.Euler(new Vector3(0, Random.Range(0, 360f), 0));
+                            NatureObjects.Add(o.localPosition, o);
+                        }
+                    }
+                }
+                catch
+                {
+
+                }
+            }
+        }
+    }
 
     public void Build(ChunkData data)
     {
@@ -494,6 +553,24 @@ public class Chunk : MonoBehaviour
         {
             TriangleQuadDict.Add(new Vector2(x, y), q);
         }
+    }
+
+    internal float getElevationUnderPointLocal(float x, float y)
+    {
+        RaycastHit hit;
+        Vector3 pos = new Vector3(x + (GlobalPosition.x * Size.x), 1000, y + (GlobalPosition.y * Size.y));
+        Debug.DrawRay(pos, Vector3.down * 2000, Color.magenta, 10f);
+        if (Physics.Raycast(new Ray(pos, Vector3.down), out hit, 2000))
+        {
+            return hit.point.y;
+        }
+
+        return 0;
+    }
+
+    internal Vector2 getGlobalPointFromLocal(float x, float y)
+    {
+        return new Vector2(x + (GlobalPosition.x * Size.x), y + (GlobalPosition.y * Size.y));
     }
 }
 
