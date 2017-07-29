@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class ScreenClick : MonoBehaviour
 {
@@ -100,5 +101,10 @@ public enum ClickType
     PLACE_TILE_FAIRWAY,
     EULER_VERTEX,
     EULER_FACE,
-    EULER_GROUP
+    EULER_GROUP,
+    PLACE_TILE_GREEN,
+    PLACE_TILE_ROUGH,
+    PLACE_TILE_FASTFAIRWAY,
+    PLACE_TILE_BUNKER,
+    PLACE_TILE_WATER,
 }
