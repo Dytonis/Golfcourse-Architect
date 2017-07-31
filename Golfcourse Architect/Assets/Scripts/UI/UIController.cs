@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
@@ -8,7 +10,17 @@ public class UIController : MonoBehaviour
     public List<UIButton> Majors = new List<UIButton>();
     public List<UIButton> Minors = new List<UIButton>();
 
+    public List<EventSystem> UIElements = new List<EventSystem>();
+
     public RectTransform BarOutCurrently = null;
+
+    public bool OverUIController = false;
+
+    public void Update()
+    {
+        EventSystem sys = GameObject.Find("EventSystem").GetComponent<EventSystem>();
+        OverUIController = sys.IsPointerOverGameObject();
+    }
 
     public void DeactivateAll()
     {

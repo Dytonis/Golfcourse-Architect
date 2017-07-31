@@ -84,7 +84,7 @@ public class Building : MonoBehaviour
             c.FastBuild(c.data);
             c.UpdateObjects(c.data);
             yield return new WaitForEndOfFrame();
-            c.BuildTexture();
+            c.BuildTexture(c.data);
         }
 
         transform.position = new Vector3(PosX, averageHeight, PosY);

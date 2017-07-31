@@ -8,7 +8,7 @@ public class ChunkData
 {
     private Chunk source;
 
-    private List<List<ChunkDataPoint>> data = new List<List<ChunkDataPoint>>();
+    internal List<List<ChunkDataPoint>> data = new List<List<ChunkDataPoint>>();
 
     public ChunkData(Chunk chunk)
     {
@@ -29,6 +29,19 @@ public class ChunkData
                 {
                     data[y].Add(new ChunkDataPoint() { elevation = 0, type = new Rough_Standard() });
                 }
+            }
+        }
+    }
+
+    public void Init(Chunk chunk, List<List<ChunkDataPoint>> copy)
+    {
+        for (int y = 0; y < chunk.Size.y + 1; y++)
+        {
+            data.Add(new List<ChunkDataPoint>());
+
+            for (int x = 0; x < chunk.Size.x + 1; x++)
+            {
+                data[y].Add(new ChunkDataPoint() { elevation = copy[y][x].elevation, type = copy[y][x].type, ObjectResiding = copy[y][x].ObjectResiding }); //Vertices that are not parents for tiles (max bounds)
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class ChunkFamily : MonoBehaviour
 {
@@ -55,6 +56,16 @@ public class ChunkFamily : MonoBehaviour
         PlaceBoundries();
         StartCoroutine(InitialPlaceOfObjects());
         StartCoroutine(EnumeratePlacePrimitiveEdgeNature());
+
+        for (int y = 0; y < Size.y; y++)
+        {
+            for (int x = 0; x < Size.x; x++)
+            {
+                Chunk c = chunkList[x, y];
+                c.tempData = new ChunkData(c);
+                c.tempData.Init(c, c.data.data);
+            }
+        }
     }
 
     public IEnumerator InitialPlaceOfObjects()
@@ -81,6 +92,14 @@ public class ChunkFamily : MonoBehaviour
         foreach (Chunk c in chunkList)
         {
             c.FastBuild(c.data);
+        }
+    }
+
+    public void FastTempBuildAllChunks()
+    {
+        foreach (Chunk c in chunkList)
+        {
+            c.FastBuild(c.tempData);
         }
     }
 
@@ -413,7 +432,7 @@ public class ChunkFamily : MonoBehaviour
             if (rand > Mathf.SmoothStep(0, 1, distanceNomralized))
             {
 
-                NatureObject o = Instantiate(NatureObject.GetObjectPrefabFromID(id), new Vector3(pos.x, GetElevationUnderPointGlobal(pos.x, pos.y), pos.y), transform.rotation);
+                NatureObject o = Instantiate(NatureObject.GetObjectPrefabFromID(id), new Vector3(pos.x, GetElevationUnderPointGlobalRaycast(pos.x, pos.y), pos.y), transform.rotation);
                 o.transform.SetParent(edgeTreeParent.transform);
                 o.source = null;
                 o.localPosition = pos;
@@ -443,6 +462,42 @@ public class ChunkFamily : MonoBehaviour
         BridgeSameVertexHeight((int)c.GlobalPosition.x, (int)c.GlobalPosition.y, (int)local.x, (int)local.y, newElevation);
     }
 
+    public void ModifyChunkDataPointTileElevationGlobally(int x, int y, float newElevation)
+    {
+        Chunk c = chunkFromGlobalTilePos(x, y);
+
+        Vector2 local = LocalPositionFromChunkSize(x, y);
+
+        c.data.SetElevation((int)local.x, (int)local.y, newElevation);
+        c.data.SetElevation((int)local.x + 1, (int)local.y, newElevation);
+        c.data.SetElevation((int)local.x + 1, (int)local.y + 1, newElevation);
+        c.data.SetElevation((int)local.x, (int)local.y + 1, newElevation);
+        BridgeSameTileHeight((int)c.GlobalPosition.x, (int)c.GlobalPosition.y, (int)local.x, (int)local.y, newElevation);
+    }
+
+    public void ModifyChunkDataPointTileElevationGloballyTemporarily(int x, int y, float newElevation)
+    {
+        Chunk c = chunkFromGlobalTilePos(x, y);
+
+        Vector2 local = LocalPositionFromChunkSize(x, y);
+
+        c.tempData.SetElevation((int)local.x, (int)local.y, newElevation);
+        c.tempData.SetElevation((int)local.x + 1, (int)local.y, newElevation);
+        c.tempData.SetElevation((int)local.x + 1, (int)local.y + 1, newElevation);
+        c.tempData.SetElevation((int)local.x, (int)local.y + 1, newElevation);
+        BridgeSameTileHeightTemporarily((int)c.GlobalPosition.x, (int)c.GlobalPosition.y, (int)local.x, (int)local.y, newElevation);
+    }
+
+    public void ModifyChunkDataPointElevationGloballyTemporarily(int x, int y, float newElevation)
+    {
+        Chunk c = chunkFromGlobalTilePos(x, y);
+
+        Vector2 local = LocalPositionFromChunkSize(x, y);
+
+        c.tempData.SetElevation((int)local.x, (int)local.y, newElevation);
+        BridgeSameVertexHeightTemporarily((int)c.GlobalPosition.x, (int)c.GlobalPosition.y, (int)local.x, (int)local.y, newElevation);
+    }
+
     public float GetChunkDataPointElevationGlobally(int x, int y)
     {
         Chunk c = chunkFromGlobalTilePos(x, y);
@@ -459,6 +514,15 @@ public class ChunkFamily : MonoBehaviour
         Vector2 local = LocalPositionFromChunkSize(x, y);
 
         c.data.SetGroundType((int)local.x, (int)local.y, type);
+    }
+
+    public void ModifyChunkDataPointTypeGloballyTemporarily(int x, int y, GA.Ground.GroundType type)
+    {
+        Chunk c = chunkFromGlobalTilePos(x, y);
+
+        Vector2 local = LocalPositionFromChunkSize(x, y);
+
+        c.tempData.SetGroundType((int)local.x, (int)local.y, type);
     }
 
     public void ModifyChunkDataObjectIDGlobally(int x, int y, ObjectID id)
@@ -479,6 +543,15 @@ public class ChunkFamily : MonoBehaviour
         return c.data[(int)local.x, (int)local.y].type;
     }
 
+    public System.Type GetChunkDataPointGroundTypeGloballyTemporarily(int x, int y)
+    {
+        Chunk c = chunkFromGlobalTilePos(x, y);
+
+        Vector2 local = LocalPositionFromChunkSize(x, y);
+
+        return c.tempData[(int)local.x, (int)local.y].type.GetType();
+    }
+
     public Chunk chunkFromGlobalTilePos(int globalTileX, int globalTileY)
     {
         Vector2 pos = new Vector2((globalTileX / (int)ChunkPrefab.Size.x) % (int)Size.x, (globalTileY / (int)ChunkPrefab.Size.y) % (int)Size.y);
@@ -491,7 +564,7 @@ public class ChunkFamily : MonoBehaviour
         return chunkList[(int)pos.x, (int)pos.y];
     }
 
-    public float GetElevationUnderPointGlobal(float x, float y)
+    public float GetElevationUnderPointGlobalRaycast(float x, float y)
     {
         RaycastHit hit;
         Vector3 pos = new Vector3(x, 1000, y);
@@ -502,6 +575,42 @@ public class ChunkFamily : MonoBehaviour
         }
 
         return 0;
+    }
+
+    public float GetLowestElevationUnderTileGlobalRaycast(float x, float y)
+    {
+        List<RaycastHit> hits = new List<RaycastHit>();
+
+        RaycastHit hit;
+        Vector3 pos = new Vector3(x, 1000, y);
+        Debug.DrawRay(pos, Vector3.down * 2000, Color.magenta, 10f);
+        if (Physics.Raycast(new Ray(pos, Vector3.down), out hit, 2000))
+        {
+            hits.Add(hit);
+        }
+        RaycastHit hit2;
+        Vector3 pos2 = new Vector3(x + 1, 1000, y);
+        Debug.DrawRay(pos, Vector3.down * 2000, Color.magenta, 10f);
+        if (Physics.Raycast(new Ray(pos2, Vector3.down), out hit2, 2000))
+        {
+            hits.Add(hit2);
+        }
+        RaycastHit hit3;
+        Vector3 pos3 = new Vector3(x, 1000, y + 1);
+        Debug.DrawRay(pos, Vector3.down * 2000, Color.magenta, 10f);
+        if (Physics.Raycast(new Ray(pos3, Vector3.down), out hit3, 2000))
+        {
+            hits.Add(hit3);
+        }
+        RaycastHit hit4;
+        Vector3 pos4 = new Vector3(x + 1, 1000, y + 1);
+        Debug.DrawRay(pos, Vector3.down * 2000, Color.magenta, 10f);
+        if (Physics.Raycast(new Ray(pos4, Vector3.down), out hit4, 2000))
+        {
+            hits.Add(hit4);
+        }
+
+        return hits.Min(h => h.point.y);
     }
 
     public void CauseRevalidationAroundTile(int chunkX, int chunkY, int tileX, int tileY, float radius)
@@ -627,6 +736,248 @@ public class ChunkFamily : MonoBehaviour
                 Chunk other = chunkList[chunkX, chunkY + 1];
                 other.data.SetElevation(vertexX, 0, elevation);
                 other.FastBuild(other.data);
+            }
+        }
+        catch { }
+    }
+
+    private List<Chunk> tempChunks = new List<Chunk>();
+    public void AddChunkToTemp(Chunk c)
+    {
+        tempChunks.Add(c);
+    }
+
+    public void ResetChunkTempMemory(bool build = false)
+    {
+        foreach (Chunk c in tempChunks)
+        {
+            c.ResetTempData();
+            if(build)
+                c.FastBuild(c.data);
+        }
+
+        tempChunks.Clear();
+    }
+
+    public void BridgeSameTileHeight(int chunkX, int chunkY, int tileX, int tileY, float elevation)
+    {
+        List<Chunk> chunksToFastBuild = new List<Chunk>();
+
+        try
+        {
+            if (tileX == 0) //left side
+            {
+                Chunk other = chunkList[chunkX - 1, chunkY];
+                other.data.SetElevation((int)other.Size.x, tileY, elevation);
+                other.data.SetElevation((int)other.Size.x, tileY + 1, elevation);
+                chunksToFastBuild.Add(other);
+
+                if (tileY == 0)
+                {
+                    Chunk extra = chunkList[chunkX - 1, chunkY - 1];
+                    extra.data.SetElevation((int)extra.Size.x, (int)extra.Size.y, elevation);
+                    chunksToFastBuild.Add(extra);
+                }
+                else if (tileY == ChunkPrefab.Size.y - 1)
+                {
+                    Chunk extra = chunkList[chunkX - 1, chunkY + 1];
+                    extra.data.SetElevation((int)extra.Size.x, 0, elevation);
+                    chunksToFastBuild.Add(extra);
+                }
+            }
+        }
+        catch { }
+        try
+        {
+            if (tileX == (int)chunkList[chunkX + 1, chunkY].Size.x - 1) //right side
+            {
+                Chunk other = chunkList[chunkX + 1, chunkY];
+                other.data.SetElevation(0, tileY, elevation);
+                other.data.SetElevation(0, tileY + 1, elevation);
+                chunksToFastBuild.Add(other);
+
+                if (tileY == 0)
+                {
+                    Chunk extra = chunkList[chunkX + 1, chunkY - 1];
+                    extra.data.SetElevation(0, (int)extra.Size.y, elevation);
+                    chunksToFastBuild.Add(extra);
+                }
+                else if (tileY == ChunkPrefab.Size.y - 1)
+                {
+                    Chunk extra = chunkList[chunkX + 1, chunkY + 1];
+                    extra.data.SetElevation(0, 0, elevation);
+                    chunksToFastBuild.Add(extra);
+                }
+            }
+        }
+        catch { }
+        try
+        {
+            if (tileY == 0) //bottom side
+            {
+                Chunk other = chunkList[chunkX, chunkY - 1];
+                other.data.SetElevation(tileX, (int)other.Size.y, elevation);
+                other.data.SetElevation(tileX + 1, (int)other.Size.y, elevation);
+                if(!chunksToFastBuild.Contains(other))
+                    chunksToFastBuild.Add(other);
+            }
+        }
+        catch { }
+        try
+        {
+            if (tileY == (int)chunkList[chunkX, chunkY + 1].Size.y - 1) //top side
+            {
+                Chunk other = chunkList[chunkX, chunkY + 1];
+                other.data.SetElevation(tileX, 0, elevation);
+                other.data.SetElevation(tileX + 1, 0, elevation);
+                if (!chunksToFastBuild.Contains(other))
+                    chunksToFastBuild.Add(other);
+            }
+        }
+        catch { }
+
+        foreach (Chunk c in chunksToFastBuild)
+            c.FastBuild(c.data);
+    }
+
+    public void BridgeSameTileHeightTemporarily(int chunkX, int chunkY, int tileX, int tileY, float elevation)
+    {
+        List<Chunk> chunksToFastBuild = new List<Chunk>();
+
+        try
+        {
+            if (tileX == 0) //left side
+            {
+                Chunk other = chunkList[chunkX - 1, chunkY];
+                other.tempData.SetElevation((int)other.Size.x, tileY, elevation);
+                other.tempData.SetElevation((int)other.Size.x, tileY + 1, elevation);
+                chunksToFastBuild.Add(other);
+
+                if (tileY == 0)
+                {
+                    Chunk extra = chunkList[chunkX - 1, chunkY - 1];
+                    extra.tempData.SetElevation((int)extra.Size.x, (int)extra.Size.y, elevation);
+                    chunksToFastBuild.Add(extra);
+                }
+                else if (tileY == ChunkPrefab.Size.y - 1)
+                {
+                    Chunk extra = chunkList[chunkX - 1, chunkY + 1];
+                    extra.tempData.SetElevation((int)extra.Size.x, 0, elevation);
+                    chunksToFastBuild.Add(extra);
+                }
+            }
+        }
+        catch { }
+        try
+        {
+            if (tileX == (int)chunkList[chunkX + 1, chunkY].Size.x - 1) //right side
+            {
+                Chunk other = chunkList[chunkX + 1, chunkY];
+                other.tempData.SetElevation(0, tileY, elevation);
+                other.tempData.SetElevation(0, tileY + 1, elevation);
+                chunksToFastBuild.Add(other);
+
+                if (tileY == 0)
+                {
+                    Chunk extra = chunkList[chunkX + 1, chunkY - 1];
+                    extra.tempData.SetElevation(0, (int)extra.Size.y, elevation);
+                    chunksToFastBuild.Add(extra);
+                }
+                else if (tileY == ChunkPrefab.Size.y - 1)
+                {
+                    Chunk extra = chunkList[chunkX + 1, chunkY + 1];
+                    extra.tempData.SetElevation(0, 0, elevation);
+                    chunksToFastBuild.Add(extra);
+                }
+            }
+        }
+        catch { }
+        try
+        {
+            if (tileY == 0) //bottom side
+            {
+                Chunk other = chunkList[chunkX, chunkY - 1];
+                other.tempData.SetElevation(tileX, (int)other.Size.y, elevation);
+                other.tempData.SetElevation(tileX + 1, (int)other.Size.y, elevation);
+                if (!chunksToFastBuild.Contains(other))
+                    chunksToFastBuild.Add(other);
+            }
+        }
+        catch { }
+        try
+        {
+            if (tileY == (int)chunkList[chunkX, chunkY + 1].Size.y - 1) //top side
+            {
+                Chunk other = chunkList[chunkX, chunkY + 1];
+                other.tempData.SetElevation(tileX, 0, elevation);
+                other.tempData.SetElevation(tileX + 1, 0, elevation);
+                if (!chunksToFastBuild.Contains(other))
+                    chunksToFastBuild.Add(other);
+            }
+        }
+        catch { }
+
+        foreach (Chunk c in chunksToFastBuild)
+        {
+            AddChunkToTemp(c);
+            c.FastBuild(c.tempData);
+        }
+    }
+
+
+    public void BridgeSameVertexHeightTemporarily(int chunkX, int chunkY, int vertexX, int vertexY, float elevation)
+    {
+        try
+        {
+            if (vertexX == 0) //left side
+            {
+                Chunk other = chunkList[chunkX - 1, chunkY];
+                other.tempData.SetElevation((int)other.Size.x, vertexY, elevation);
+                other.FastBuild(other.tempData);
+
+                if (vertexY == 0)
+                {
+                    Chunk extra = chunkList[chunkX - 1, chunkY - 1];
+                    extra.tempData.SetElevation((int)extra.Size.x, (int)extra.Size.y, elevation);
+                    extra.FastBuild(extra.tempData);
+                }
+            }
+        }
+        catch { }
+        try
+        {
+            if (vertexX == (int)chunkList[chunkX + 1, chunkY].Size.x) //right side
+            {
+                Chunk other = chunkList[chunkX + 1, chunkY];
+                other.tempData.SetElevation(0, vertexY, elevation);
+                other.FastBuild(other.tempData);
+
+                if (vertexY == 0)
+                {
+                    Chunk extra = chunkList[chunkX, chunkY - 1];
+                    extra.tempData.SetElevation((int)extra.Size.x, (int)extra.Size.y, elevation);
+                    extra.FastBuild(extra.tempData);
+                }
+            }
+        }
+        catch { }
+        try
+        {
+            if (vertexY == 0) //bottom side
+            {
+                Chunk other = chunkList[chunkX, chunkY - 1];
+                other.tempData.SetElevation(vertexX, (int)other.Size.y, elevation);
+                other.FastBuild(other.tempData);
+            }
+        }
+        catch { }
+        try
+        {
+            if (vertexY == (int)chunkList[chunkX, chunkY + 1].Size.y) //top side
+            {
+                Chunk other = chunkList[chunkX, chunkY + 1];
+                other.tempData.SetElevation(vertexX, 0, elevation);
+                other.FastBuild(other.tempData);
             }
         }
         catch { }

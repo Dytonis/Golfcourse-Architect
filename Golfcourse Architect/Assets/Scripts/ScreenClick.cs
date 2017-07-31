@@ -7,6 +7,11 @@ public class ScreenClick : MonoBehaviour
 {
     public ClickType ClickAction;
     public ChunkFamily Family;
+    public UIController UIController;
+
+    public Tees teesPrefab;
+
+    public Vector2 mouseVelocityLastFrame;
 
     // Use this for initialization
     void Start()
@@ -14,15 +19,87 @@ public class ScreenClick : MonoBehaviour
 
     }
 
+    private Vector2 mousePositionLastFrame = Vector2.zero;
     // Update is called once per frame
     void Update()
     {
+        if (UIController.OverUIController)
+        {
+            ResetState();
+            return;
+        }
+
         Ray r = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        mouseVelocityLastFrame = new Vector2(Input.mousePosition.x - mousePositionLastFrame.x, Input.mousePosition.y - mousePositionLastFrame.y);
 
         if (ClickAction == ClickType.PLACE_TILE_FAIRWAY)
             ChangeTileType(r);
         else if (ClickAction == ClickType.EULER_VERTEX)
             Euler_Vertex(r);
+        else if (ClickAction == ClickType.PLACE_HOLE_TEES)
+            PlaceHoleObject(r, "tee");
+
+        mousePositionLastFrame = Input.mousePosition;
+    }
+
+    private void ResetState()
+    {
+        if (teeObject)
+        {
+            Destroy(teeObject.gameObject);
+            Family.ResetChunkTempMemory(true);
+        }
+    }
+
+    Tees teeObject = new Tees();
+    private void PlaceHoleObject(Ray r, string obj)
+    {
+        if (mouseVelocityLastFrame == Vector2.zero && Input.GetMouseButtonUp(0) == false)
+            return;
+
+        if (teeObject == null)
+            teeObject = Instantiate(teesPrefab) as Tees;
+
+        Debug.DrawRay(Camera.main.transform.position, r.direction * 100, Color.blue, 0.1f);
+        RaycastHit hit;
+        if (Physics.Raycast(r, out hit, 100f))
+        {
+            if (hit.collider.GetComponent<Chunk>() != null)
+            {
+                int triangle = hit.triangleIndex;
+
+                Chunk c = hit.collider.GetComponent<Chunk>();
+
+                float y = ((triangle / 2) % (int)c.Size.x);
+                float x = (triangle / ((int)c.Size.x * 2));
+
+                float globalY = c.getGlobalPointFromLocal(x, y).y;
+                float globalX = c.getGlobalPointFromLocal(x, y).x;
+
+                Family.ResetChunkTempMemory(true);
+
+                float lowest = Family.GetLowestElevationUnderTileGlobalRaycast(globalX, globalY);
+
+                Family.ModifyChunkDataPointTileElevationGloballyTemporarily((int)globalX, (int)globalY, lowest);
+
+                c.FastBuild(c.tempData);
+                Family.AddChunkToTemp(c);
+
+                teeObject.Position = new Vector3(globalX + 0.5f, lowest + 0.03f, globalY + 0.5f);
+
+                if (Input.GetMouseButtonUp(0))
+                {
+                    Family.ModifyChunkDataPointTileElevationGlobally((int)globalX, (int)globalY, lowest);
+                    Family.ModifyChunkDataPointTypeGlobally((int)globalX, (int)globalY, new GA.Ground.Fairway());
+                    Instantiate(teeObject, teeObject.transform.position, teeObject.transform.rotation);
+                    UIController.DeactivateMinors();
+                    ClickAction = ClickType.NONE;
+                    c.FastBuild(c.data);
+                    c.BuildTexture(c.data);
+                }
+            }
+        }
     }
 
     private void ChangeTileType(Ray r)
@@ -44,7 +121,7 @@ public class ScreenClick : MonoBehaviour
                     int x = triangle / ((int)c.Size.x * 2);
 
                     c.data.SetGroundType(x, y, new GA.Ground.Fairway());
-                    c.BuildTexture();
+                    c.BuildTexture(c.data);
 
                     Debug.Log("Triangle " + triangle);
                 }
@@ -107,4 +184,6 @@ public enum ClickType
     PLACE_TILE_FASTFAIRWAY,
     PLACE_TILE_BUNKER,
     PLACE_TILE_WATER,
+    PLACE_HOLE_PIN,
+    PLACE_HOLE_TEES,
 }

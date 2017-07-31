@@ -11,6 +11,7 @@ public class UIButton : MonoBehaviour, IPointerClickHandler
     public ScreenClick clicker;
     public MajorButtonID Major;
     public TilesButtonID Tiles;
+    public HoleObjectButtonID HoleObjects;
 
     public RectTransform Bar;
 
@@ -99,6 +100,17 @@ public class UIButton : MonoBehaviour, IPointerClickHandler
                     clicker.ClickAction = ClickType.PLACE_TILE_GREEN;
                 }
             }
+            else if (GroupParent.Major == MajorButtonID.Hole)
+            {
+                if (HoleObjects == HoleObjectButtonID.Pin)
+                {
+                    clicker.ClickAction = ClickType.PLACE_HOLE_PIN;
+                }
+                else if (HoleObjects == HoleObjectButtonID.Teebox)
+                {
+                    clicker.ClickAction = ClickType.PLACE_HOLE_TEES;
+                }
+            }
         }
     }
 }
@@ -127,4 +139,11 @@ public enum TilesButtonID
     PotBunker,
     TallGrass,
     Underbrush,
+}
+
+public enum HoleObjectButtonID
+{
+    None,
+    Teebox,
+    Pin,
 }

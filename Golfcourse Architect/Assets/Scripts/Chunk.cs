@@ -28,6 +28,7 @@ public class Chunk : MonoBehaviour
     public MeshRenderer L2;
 
     public ChunkData data;
+    public ChunkData tempData;
 
     public void ApplyMesh()
     {
@@ -37,7 +38,13 @@ public class Chunk : MonoBehaviour
         }
     }
 
-    public void FastBuild(ChunkData data)
+    public void ResetTempData()
+    {
+        tempData = new ChunkData(this);
+        tempData.Init(this, data.data);
+    }
+
+    public void FastBuild(ChunkData cd)
     {
         for (int y = 0; y < Size.y + 1; y++)
         {
@@ -49,7 +56,7 @@ public class Chunk : MonoBehaviour
 
                     for (int c = 0; c < dupeVertCount; c++)
                     {
-                        vertices[vert + c] = new Vector3(vertices[vert + c].x, data[x, y].elevation, vertices[vert + c].z);
+                        vertices[vert + c] = new Vector3(vertices[vert + c].x, cd[x, y].elevation, vertices[vert + c].z);
                     }
                 }
                 catch
@@ -69,7 +76,7 @@ public class Chunk : MonoBehaviour
         GetComponent<MeshCollider>().sharedMesh = mesh;
     }
 
-    public void BuildTexture()
+    public void BuildTexture(ChunkData cd)
     {
         Texture2D texL0 = L0.material.mainTexture as Texture2D;
         Texture2D texL1 = L1.material.mainTexture as Texture2D;
@@ -98,9 +105,9 @@ public class Chunk : MonoBehaviour
                 int sizeX = x * tileTexSize;
                 int sizeY = y * tileTexSize;
 
-                texL0.SetPixels(sizeX, sizeY, tileTexSize, tileTexSize, data[x, y].type.GetColorsFromTexture()[0]);
-                texL1.SetPixels(sizeX, sizeY, tileTexSize, tileTexSize, data[x, y].type.GetColorsFromTexture()[1]);
-                texL2.SetPixels(sizeX, sizeY, tileTexSize, tileTexSize, data[x, y].type.GetColorsFromTexture()[2]);
+                texL0.SetPixels(sizeX, sizeY, tileTexSize, tileTexSize, cd[x, y].type.GetColorsFromTexture()[0]);
+                texL1.SetPixels(sizeX, sizeY, tileTexSize, tileTexSize, cd[x, y].type.GetColorsFromTexture()[1]);
+                texL2.SetPixels(sizeX, sizeY, tileTexSize, tileTexSize, cd[x, y].type.GetColorsFromTexture()[2]);
             }
         }
 
@@ -261,7 +268,7 @@ public class Chunk : MonoBehaviour
         mesh.RecalculateBounds();
         mesh.RecalculateTangents();
         ApplyMesh();
-        BuildTexture();
+        BuildTexture(data);
 
         GetComponent<MeshCollider>().sharedMesh = null;
         GetComponent<MeshCollider>().sharedMesh = mesh;

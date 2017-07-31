@@ -16,6 +16,9 @@ namespace GA.Ground
         public virtual float accuracyMod { get; set; }
         public virtual float distanceMod { get; set; }
         public virtual float spinMod { get; set;  }
+        public virtual float shotWeight { get; set; }
+        public virtual float walkWeight { get; set; }
+        public virtual bool walkable { get; set; }
 
         public abstract void OnActivate();
 
@@ -114,6 +117,32 @@ namespace GA.Ground
             }
         }
 
+        public override float shotWeight
+        {
+            get
+            {
+                return 3;
+            }
+
+            set
+            {
+                base.shotWeight = value;
+            }
+        }
+
+        public override float walkWeight
+        {
+            get
+            {
+                return 3;
+            }
+
+            set
+            {
+                base.walkWeight = value;
+            }
+        }
+
         public override void OnActivate()
         {
             throw new NotImplementedException();
@@ -131,6 +160,58 @@ namespace GA.Ground
                     (int)GroundSprites.FAIRWAY_STANDARD,
                     (int)GroundSprites.DARK_PLATE,
                 };
+            }
+        }
+
+        public override float friction
+        {
+            get
+            {
+                return 0.2f;
+            }
+
+            set
+            {
+                base.friction = value;
+            }
+        }
+
+        public override float bounce
+        {
+            get
+            {
+                return 0.45f;
+            }
+
+            set
+            {
+                base.bounce = value;
+            }
+        }
+
+        public override float shotWeight
+        {
+            get
+            {
+                return 2;
+            }
+
+            set
+            {
+                base.shotWeight = value;
+            }
+        }
+
+        public override float walkWeight
+        {
+            get
+            {
+                return 2;
+            }
+
+            set
+            {
+                base.walkWeight = value;
             }
         }
 
@@ -164,6 +245,32 @@ namespace GA.Ground
             set
             {
                 base.bounce = value;
+            }
+        }
+
+        public override float shotWeight
+        {
+            get
+            {
+                return 1;
+            }
+
+            set
+            {
+                base.shotWeight = value;
+            }
+        }
+
+        public override float walkWeight
+        {
+            get
+            {
+                return 2;
+            }
+
+            set
+            {
+                base.walkWeight = value;
             }
         }
 
@@ -230,6 +337,32 @@ namespace GA.Ground
             set
             {
                 base.bounce = value;
+            }
+        }
+
+        public override float shotWeight
+        {
+            get
+            {
+                return 3;
+            }
+
+            set
+            {
+                base.shotWeight = value;
+            }
+        }
+
+        public override float walkWeight
+        {
+            get
+            {
+                return 1;
+            }
+
+            set
+            {
+                base.walkWeight = value;
             }
         }
 
