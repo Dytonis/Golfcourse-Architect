@@ -10,6 +10,7 @@ public class ScreenClick : MonoBehaviour
     public UIController UIController;
 
     public Tees teesPrefab;
+    public Pin pinPrefab;
 
     public Vector2 mouseVelocityLastFrame;
 
@@ -34,11 +35,15 @@ public class ScreenClick : MonoBehaviour
         mouseVelocityLastFrame = new Vector2(Input.mousePosition.x - mousePositionLastFrame.x, Input.mousePosition.y - mousePositionLastFrame.y);
 
         if (ClickAction == ClickType.PLACE_TILE_FAIRWAY)
-            ChangeTileType(r);
+            ChangeTileType(r, new GA.Ground.Fairway());
+        else if (ClickAction == ClickType.PLACE_TILE_GREEN)
+            ChangeTileType(r, new GA.Ground.Green());
         else if (ClickAction == ClickType.EULER_VERTEX)
             Euler_Vertex(r);
         else if (ClickAction == ClickType.PLACE_HOLE_TEES)
             PlaceHoleObject(r, "tee");
+        else if (ClickAction == ClickType.PLACE_HOLE_PIN)
+            PlaceHoleObject(r, "pin");
 
         mousePositionLastFrame = Input.mousePosition;
     }
@@ -50,59 +55,128 @@ public class ScreenClick : MonoBehaviour
             Destroy(teeObject.gameObject);
             Family.ResetChunkTempMemory(true);
         }
+        if (pinObject)
+        {
+            Destroy(pinObject.gameObject);
+        }
     }
 
     Tees teeObject = new Tees();
+    Pin pinObject = new Pin();
     private void PlaceHoleObject(Ray r, string obj)
     {
         if (mouseVelocityLastFrame == Vector2.zero && Input.GetMouseButtonUp(0) == false)
             return;
 
-        if (teeObject == null)
-            teeObject = Instantiate(teesPrefab) as Tees;
-
-        Debug.DrawRay(Camera.main.transform.position, r.direction * 100, Color.blue, 0.1f);
-        RaycastHit hit;
-        if (Physics.Raycast(r, out hit, 100f))
+        if (obj == "tee")
         {
-            if (hit.collider.GetComponent<Chunk>() != null)
+            if (teeObject == null)
+                teeObject = Instantiate(teesPrefab) as Tees;
+
+            Debug.DrawRay(Camera.main.transform.position, r.direction * 100, Color.blue, 0.1f);
+            RaycastHit hit;
+            if (Physics.Raycast(r, out hit, 100f))
             {
-                int triangle = hit.triangleIndex;
-
-                Chunk c = hit.collider.GetComponent<Chunk>();
-
-                float y = ((triangle / 2) % (int)c.Size.x);
-                float x = (triangle / ((int)c.Size.x * 2));
-
-                float globalY = c.getGlobalPointFromLocal(x, y).y;
-                float globalX = c.getGlobalPointFromLocal(x, y).x;
-
-                Family.ResetChunkTempMemory(true);
-
-                float lowest = Family.GetLowestElevationUnderTileGlobalRaycast(globalX, globalY);
-
-                Family.ModifyChunkDataPointTileElevationGloballyTemporarily((int)globalX, (int)globalY, lowest);
-
-                c.FastBuild(c.tempData);
-                Family.AddChunkToTemp(c);
-
-                teeObject.Position = new Vector3(globalX + 0.5f, lowest + 0.03f, globalY + 0.5f);
-
-                if (Input.GetMouseButtonUp(0))
+                if (hit.collider.GetComponent<Chunk>() != null)
                 {
-                    Family.ModifyChunkDataPointTileElevationGlobally((int)globalX, (int)globalY, lowest);
-                    Family.ModifyChunkDataPointTypeGlobally((int)globalX, (int)globalY, new GA.Ground.Fairway());
-                    Instantiate(teeObject, teeObject.transform.position, teeObject.transform.rotation);
-                    UIController.DeactivateMinors();
-                    ClickAction = ClickType.NONE;
-                    c.FastBuild(c.data);
-                    c.BuildTexture(c.data);
+                    int triangle = hit.triangleIndex;
+
+                    Chunk c = hit.collider.GetComponent<Chunk>();
+
+                    float y = ((triangle / 2) % (int)c.Size.x);
+                    float x = (triangle / ((int)c.Size.x * 2));
+
+                    float globalY = c.getGlobalPointFromLocal(x, y).y;
+                    float globalX = c.getGlobalPointFromLocal(x, y).x;
+
+                    Family.ResetChunkTempMemory(true);
+
+                    float lowest = Family.GetLowestElevationUnderTileGlobalRaycast(globalX, globalY);
+
+                    Family.ModifyChunkDataPointTileElevationGloballyTemporarily((int)globalX, (int)globalY, lowest);
+
+                    c.FastBuild(c.tempData);
+                    Family.AddChunkToTemp(c);
+
+                    teeObject.Position = new Vector3(globalX + 0.5f, lowest + 0.03f, globalY + 0.5f);
+
+                    if (Input.GetMouseButtonUp(0))
+                    {
+                        Family.ModifyChunkDataPointTileElevationGlobally((int)globalX, (int)globalY, lowest);
+                        Family.ModifyChunkDataPointTypeGlobally((int)globalX, (int)globalY, new GA.Ground.Fairway());
+                        Instantiate(teeObject, teeObject.transform.position, teeObject.transform.rotation);
+                        UIController.DeactivateMinors();
+                        ClickAction = ClickType.NONE;
+                        c.FastBuild(c.data);
+                        c.BuildTexture(c.data);
+                        ResetState();
+                    }
+                }
+            }
+        }
+        else if (obj == "pin")
+        {
+            if (pinObject == null)
+                pinObject = Instantiate(pinPrefab) as Pin;
+
+            Debug.DrawRay(Camera.main.transform.position, r.direction * 100, Color.blue, 0.1f);
+            RaycastHit hit;
+            if (Physics.Raycast(r, out hit, 100f))
+            {
+                if (hit.collider.GetComponent<Chunk>() != null)
+                {
+                    int triangle = hit.triangleIndex;
+
+                    Chunk c = hit.collider.GetComponent<Chunk>();
+
+                    float y = ((triangle / 2) % (int)c.Size.x);
+                    float x = (triangle / ((int)c.Size.x * 2));
+
+                    float globalY = c.getGlobalPointFromLocal(x, y).y;
+                    float globalX = c.getGlobalPointFromLocal(x, y).x;
+
+                    float lpX = (int)((hit.point.x % 1) * 8);
+                    float lpY = (int)((hit.point.z % 1) * 8);
+
+                    float pX = (lpX / 8f) + globalX;
+                    float pY = (lpY / 8f) + globalY;
+                    float pE = Family.GetElevationUnderPointGlobalRaycast(pX, pY);
+
+                    Material[] pinMaterials;
+                    pinMaterials = pinObject.GetComponent<MeshRenderer>().materials;
+                    if (Family.GetChunkDataPointTypeofGroundTypeGlobally((int)globalX, (int)globalY) != typeof(GA.Ground.Green))
+                    {                      
+                        foreach(Material m in pinMaterials)
+                        {
+                            m.color = new Color(0.6f, 0.6f, 0.6f, 0.6f);
+                        }
+                    }
+                    else
+                    {
+                        foreach (Material m in pinMaterials)
+                        {
+                            m.color = new Color(0.6f, 0.6f, 0.6f, 1f);
+                        }
+                    }
+
+                    pinObject.PositionFine = new Vector3(pX + (1f / 16f), pE + 0.12f, pY + (1f / 16f));
+
+                    if (Input.GetMouseButtonUp(0) && Family.GetChunkDataPointTypeofGroundTypeGlobally((int)globalX, (int)globalY) == typeof(GA.Ground.Green))
+                    {
+                        c.SetPositionAsHole((int)x, (int)y, (int)(lpX), (int)(lpY));
+                        c.BuildTexture(c.data);
+                        Pin newPin = Instantiate(pinObject, pinObject.transform.position, pinObject.transform.rotation);
+                        newPin.PositionFine = new Vector3(pX + (1f / 16f), pE - 0.03f, pY + (1f / 16f));
+                        UIController.DeactivateMinors();
+                        ClickAction = ClickType.NONE;
+                        ResetState();
+                    }
                 }
             }
         }
     }
 
-    private void ChangeTileType(Ray r)
+    private void ChangeTileType(Ray r, GA.Ground.GroundType type)
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -120,7 +194,7 @@ public class ScreenClick : MonoBehaviour
                     int y = (triangle / 2) % (int)c.Size.x;
                     int x = triangle / ((int)c.Size.x * 2);
 
-                    c.data.SetGroundType(x, y, new GA.Ground.Fairway());
+                    c.data.SetGroundType(x, y, type);
                     c.BuildTexture(c.data);
 
                     Debug.Log("Triangle " + triangle);

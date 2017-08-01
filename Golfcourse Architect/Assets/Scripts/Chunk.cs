@@ -30,6 +30,8 @@ public class Chunk : MonoBehaviour
     public ChunkData data;
     public ChunkData tempData;
 
+    public List<Vector2> HoleDrawList = new List<Vector2>();
+
     public void ApplyMesh()
     {
         foreach (MeshFilter f in filters)
@@ -111,6 +113,13 @@ public class Chunk : MonoBehaviour
             }
         }
 
+        foreach(Vector2 v in HoleDrawList)
+        {
+            texL0.SetPixel((int)v.x, (int)v.y, Color.clear);
+            texL1.SetPixel((int)v.x, (int)v.y, Color.clear);
+            texL2.SetPixel((int)v.x, (int)v.y, Color.clear);
+        }
+
         texL0.filterMode = FilterMode.Point;
         texL1.filterMode = FilterMode.Point;
         texL2.filterMode = FilterMode.Point;
@@ -125,6 +134,16 @@ public class Chunk : MonoBehaviour
     }
 
     private Dictionary<Vector2, QuadReference> TriangleQuadDict = new Dictionary<Vector2, QuadReference>();
+
+    public void SetPositionAsHole(int tileX, int tileY, int subTileX, int subTileY)
+    {
+        HoleDrawList.Add(new Vector2((tileX * 8) + subTileX, (tileY * 8) + subTileY));
+    }
+
+    public void ClearHolePositions()
+    {
+        HoleDrawList.Clear();
+    }
 
     public void PlaceAllObjectsPrimitive(ChunkData data)
     {
