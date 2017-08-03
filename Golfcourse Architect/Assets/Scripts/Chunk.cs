@@ -585,7 +585,6 @@ public class Chunk : MonoBehaviour
     {
         RaycastHit hit;
         Vector3 pos = new Vector3(x + (GlobalPosition.x * Size.x), 1000, y + (GlobalPosition.y * Size.y));
-        Debug.DrawRay(pos, Vector3.down * 2000, Color.magenta, 10f);
         if (Physics.Raycast(new Ray(pos, Vector3.down), out hit, 2000))
         {
             return hit.point.y;

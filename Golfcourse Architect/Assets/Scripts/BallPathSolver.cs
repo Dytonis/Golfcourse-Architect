@@ -58,8 +58,8 @@ public class BallPathSolver : MonoBehaviour
         float elevationGain = startingPos.y - target.y;
         Vector3 carryLocation = heading / (1.05f + (elevationGain / 25f));
         float CarryDistance = Vector3.Distance(startingPos, carryLocation);
-        Carry = CarryDistance * tileSizeInYards;
-        TotalDistance = gap * tileSizeInYards;
+        Carry = Yard.FloatToYard(CarryDistance);
+        TotalDistance = Yard.FloatToYard(gap);
 
         ClubSelected = ClubStat.GetClubFromDistance(Level, Carry);
         ClubSelectedName = ClubSelected.uiname;

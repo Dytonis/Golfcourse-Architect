@@ -121,7 +121,7 @@ namespace GA.Ground
         {
             get
             {
-                return 3;
+                return 4;
             }
 
             set
@@ -193,7 +193,7 @@ namespace GA.Ground
         {
             get
             {
-                return 2;
+                return 0.5f;
             }
 
             set
@@ -252,7 +252,7 @@ namespace GA.Ground
         {
             get
             {
-                return 1;
+                return 0;
             }
 
             set

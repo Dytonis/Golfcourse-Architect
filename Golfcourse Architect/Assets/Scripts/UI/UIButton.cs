@@ -24,6 +24,8 @@ public class UIButton : MonoBehaviour, IPointerClickHandler
 
     private bool major = false;
 
+    public bool Enabled = true;
+
     public void Start()
     { 
         clicker = GameObject.FindGameObjectWithTag("cameraClicker").GetComponent<ScreenClick>();
@@ -38,6 +40,18 @@ public class UIButton : MonoBehaviour, IPointerClickHandler
             controller.Minors.Add(this);
 
         controller.Buttons.Add(this);
+    }
+
+    public void EnableButton()
+    {
+        GetComponent<RawImage>().color = new Color(1, 1, 1, 1);
+        Enabled = true;
+    }
+
+    public void DisableButton()
+    {
+        GetComponent<RawImage>().color = new Color(0.5f, 0.5f, 0.5f, 1);
+        Enabled = false;
     }
 
     public void Activate()
@@ -59,9 +73,21 @@ public class UIButton : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (Enabled == false)
+            return;
+
         if (On)
         {
             Deactivate();
+            if (clicker.Family.CurrentHoleCreating)
+            {
+                if (clicker.Family.CurrentHoleCreating.TeesList.Count == 0 && clicker.Family.CurrentHoleCreating.currentPin == null) //stop construction if nothing has been placed
+                {
+                    clicker.Family.CurrentHoleCreating.OnLeaveStatsView();
+                    clicker.Family.CurrentHoleCreating.ConstructingCurrently = false;
+                    clicker.ResetState();
+                }
+            }
         }
         else
         {
@@ -85,30 +111,33 @@ public class UIButton : MonoBehaviour, IPointerClickHandler
 
         if (GroupParent != null)
         {
-            if (GroupParent.Major == MajorButtonID.Tiles)
+            if (On) //if it IS CURRENTLY on 
             {
-                if (Tiles == TilesButtonID.Fairway)
+                if (GroupParent.Major == MajorButtonID.Tiles)
                 {
-                    clicker.ClickAction = ClickType.PLACE_TILE_FAIRWAY;
+                    if (Tiles == TilesButtonID.Fairway)
+                    {
+                        clicker.ClickAction = ClickType.PLACE_TILE_FAIRWAY;
+                    }
+                    else if (Tiles == TilesButtonID.Rough)
+                    {
+                        clicker.ClickAction = ClickType.PLACE_TILE_ROUGH;
+                    }
+                    else if (Tiles == TilesButtonID.Green)
+                    {
+                        clicker.ClickAction = ClickType.PLACE_TILE_GREEN;
+                    }
                 }
-                else if (Tiles == TilesButtonID.Rough)
+                else if (GroupParent.Major == MajorButtonID.Hole)
                 {
-                    clicker.ClickAction = ClickType.PLACE_TILE_ROUGH;
-                }
-                else if (Tiles == TilesButtonID.Green)
-                {
-                    clicker.ClickAction = ClickType.PLACE_TILE_GREEN;
-                }
-            }
-            else if (GroupParent.Major == MajorButtonID.Hole)
-            {
-                if (HoleObjects == HoleObjectButtonID.Pin)
-                {
-                    clicker.ClickAction = ClickType.PLACE_HOLE_PIN;
-                }
-                else if (HoleObjects == HoleObjectButtonID.Teebox)
-                {
-                    clicker.ClickAction = ClickType.PLACE_HOLE_TEES;
+                    if (HoleObjects == HoleObjectButtonID.Pin)
+                    {
+                        clicker.ClickAction = ClickType.PLACE_HOLE_PIN;
+                    }
+                    else if (HoleObjects == HoleObjectButtonID.Teebox)
+                    {
+                        clicker.ClickAction = ClickType.PLACE_HOLE_TEES;
+                    }
                 }
             }
         }

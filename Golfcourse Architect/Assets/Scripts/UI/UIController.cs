@@ -10,8 +10,14 @@ public class UIController : MonoBehaviour
     public List<UIButton> Majors = new List<UIButton>();
     public List<UIButton> Minors = new List<UIButton>();
 
+    public UIButton PinButton;
+    public UIButton TeeButton;
+
     public List<EventSystem> UIElements = new List<EventSystem>();
 
+    public RectTransform SideBarHoleConstructor;
+    public RectTransform TopBarHoleContructor;
+    public HoleProperties HoleProperties;
     public RectTransform BarOutCurrently = null;
 
     public bool OverUIController = false;

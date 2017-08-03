@@ -23,4 +23,21 @@ public class Pin : MonoBehaviour
     {
         transform.position = value;
     }
+
+    public void OnPlacement(ChunkFamily family, UIController controller)
+    {
+        //disable pin button
+        controller.PinButton.DisableButton();
+        family.CurrentHoleCreating.pinPlacements.Add(this);
+        family.CurrentHoleCreating.currentPin = this;
+
+        if (family.CurrentHoleCreating.TeesList.Count >= 1)
+        {
+            //this placement has finished the hole
+            family.CurrentHoleCreating.Valid = true;
+
+            family.CurrentHoleCreating.CalculateTargetLine();
+            family.CurrentHoleCreating.OnValidation();
+        }
+    }
 }

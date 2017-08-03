@@ -16,6 +16,10 @@ public class ChunkFamily : MonoBehaviour
     public GameObject ChunkEdgePrefab;
     GameObject edgeTreeParent;
 
+    public bool CreatingHole = false;
+    public Hole CurrentHoleCreating;
+    public List<Hole> HoleList = new List<Hole>();
+
     public Vector2 globalSize
     {
         get
@@ -570,14 +574,20 @@ public class ChunkFamily : MonoBehaviour
         if (globalTileY == ChunkPrefab.Size.y * Size.y)
             pos.y = Size.y - 1;
 
-        return chunkList[(int)pos.x, (int)pos.y];
+        try
+        {
+            return chunkList[(int)pos.x, (int)pos.y];
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public float GetElevationUnderPointGlobalRaycast(float x, float y)
     {
         RaycastHit hit;
         Vector3 pos = new Vector3(x, 1000, y);
-        Debug.DrawRay(pos, Vector3.down * 2000, Color.magenta, 10f);
         if (Physics.Raycast(new Ray(pos, Vector3.down), out hit, 2000))
         {
             return hit.point.y;
@@ -592,28 +602,24 @@ public class ChunkFamily : MonoBehaviour
 
         RaycastHit hit;
         Vector3 pos = new Vector3(x, 1000, y);
-        Debug.DrawRay(pos, Vector3.down * 2000, Color.magenta, 10f);
         if (Physics.Raycast(new Ray(pos, Vector3.down), out hit, 2000))
         {
             hits.Add(hit);
         }
         RaycastHit hit2;
         Vector3 pos2 = new Vector3(x + 1, 1000, y);
-        Debug.DrawRay(pos, Vector3.down * 2000, Color.magenta, 10f);
         if (Physics.Raycast(new Ray(pos2, Vector3.down), out hit2, 2000))
         {
             hits.Add(hit2);
         }
         RaycastHit hit3;
         Vector3 pos3 = new Vector3(x, 1000, y + 1);
-        Debug.DrawRay(pos, Vector3.down * 2000, Color.magenta, 10f);
         if (Physics.Raycast(new Ray(pos3, Vector3.down), out hit3, 2000))
         {
             hits.Add(hit3);
         }
         RaycastHit hit4;
         Vector3 pos4 = new Vector3(x + 1, 1000, y + 1);
-        Debug.DrawRay(pos, Vector3.down * 2000, Color.magenta, 10f);
         if (Physics.Raycast(new Ray(pos4, Vector3.down), out hit4, 2000))
         {
             hits.Add(hit4);

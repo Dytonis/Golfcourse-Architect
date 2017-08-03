@@ -11,6 +11,7 @@ public class ScreenClick : MonoBehaviour
 
     public Tees teesPrefab;
     public Pin pinPrefab;
+    public Hole holePrefab;
 
     public Vector2 mouseVelocityLastFrame;
 
@@ -21,6 +22,9 @@ public class ScreenClick : MonoBehaviour
     }
 
     private Vector2 mousePositionLastFrame = Vector2.zero;
+    private Vector2 lastTileHovered = new Vector2();
+    private bool newTileThisFrame = false;
+    private Vector2 currentTileHovered = new Vector2();
     // Update is called once per frame
     void Update()
     {
@@ -33,6 +37,33 @@ public class ScreenClick : MonoBehaviour
         Ray r = Camera.main.ScreenPointToRay(Input.mousePosition);
 
         mouseVelocityLastFrame = new Vector2(Input.mousePosition.x - mousePositionLastFrame.x, Input.mousePosition.y - mousePositionLastFrame.y);
+        RaycastHit hit;
+        if (Physics.Raycast(r, out hit, 100f))
+        {
+            if (hit.collider.GetComponent<Chunk>() != null)
+            {
+                int triangle = hit.triangleIndex;
+
+                Chunk c = hit.collider.GetComponent<Chunk>();
+
+                float y = ((triangle / 2) % (int)c.Size.x);
+                float x = (triangle / ((int)c.Size.x * 2));
+
+                float globalY = c.getGlobalPointFromLocal(x, y).y;
+                float globalX = c.getGlobalPointFromLocal(x, y).x;
+
+                currentTileHovered = new Vector2(globalX, globalY);
+            }
+        }
+
+        if(currentTileHovered.x == lastTileHovered.x && currentTileHovered.y == lastTileHovered.y)
+        {
+            newTileThisFrame = false;
+        } 
+        else
+        {
+            newTileThisFrame = true;
+        }
 
         if (ClickAction == ClickType.PLACE_TILE_FAIRWAY)
             ChangeTileType(r, new GA.Ground.Fairway());
@@ -46,9 +77,10 @@ public class ScreenClick : MonoBehaviour
             PlaceHoleObject(r, "pin");
 
         mousePositionLastFrame = Input.mousePosition;
+        lastTileHovered = currentTileHovered;
     }
 
-    private void ResetState()
+    public void ResetState()
     {
         if (teeObject)
         {
@@ -66,110 +98,149 @@ public class ScreenClick : MonoBehaviour
     private void PlaceHoleObject(Ray r, string obj)
     {
         if (mouseVelocityLastFrame == Vector2.zero && Input.GetMouseButtonUp(0) == false)
-            return;
-
-        if (obj == "tee")
         {
-            if (teeObject == null)
-                teeObject = Instantiate(teesPrefab) as Tees;
-
-            Debug.DrawRay(Camera.main.transform.position, r.direction * 100, Color.blue, 0.1f);
-            RaycastHit hit;
-            if (Physics.Raycast(r, out hit, 100f))
+        }
+        else
+        {
+            if (obj == "tee")
             {
-                if (hit.collider.GetComponent<Chunk>() != null)
+                if (teeObject == null)
+                    teeObject = Instantiate(teesPrefab) as Tees;
+
+                if (Family.CurrentHoleCreating == null)
                 {
-                    int triangle = hit.triangleIndex;
+                    Family.CurrentHoleCreating = Instantiate(holePrefab);
+                    Family.CurrentHoleCreating.Init(Family, UIController);
+                    Family.CurrentHoleCreating.OnCreation();
+                }
 
-                    Chunk c = hit.collider.GetComponent<Chunk>();
+                if (Family.CurrentHoleCreating.ConstructingCurrently == false)
+                {
+                    Family.CurrentHoleCreating.OnStartConstruction();
+                    Family.CurrentHoleCreating.ConstructingCurrently = true;
+                }
 
-                    float y = ((triangle / 2) % (int)c.Size.x);
-                    float x = (triangle / ((int)c.Size.x * 2));
-
-                    float globalY = c.getGlobalPointFromLocal(x, y).y;
-                    float globalX = c.getGlobalPointFromLocal(x, y).x;
-
-                    Family.ResetChunkTempMemory(true);
-
-                    float lowest = Family.GetLowestElevationUnderTileGlobalRaycast(globalX, globalY);
-
-                    Family.ModifyChunkDataPointTileElevationGloballyTemporarily((int)globalX, (int)globalY, lowest);
-
-                    c.FastBuild(c.tempData);
-                    Family.AddChunkToTemp(c);
-
-                    teeObject.Position = new Vector3(globalX + 0.5f, lowest + 0.03f, globalY + 0.5f);
-
-                    if (Input.GetMouseButtonUp(0))
+                Debug.DrawRay(Camera.main.transform.position, r.direction * 100, Color.blue, 0.1f);
+                RaycastHit hit;
+                if (Physics.Raycast(r, out hit, 100f))
+                {
+                    if (hit.collider.GetComponent<Chunk>() != null)
                     {
-                        Family.ModifyChunkDataPointTileElevationGlobally((int)globalX, (int)globalY, lowest);
-                        Family.ModifyChunkDataPointTypeGlobally((int)globalX, (int)globalY, new GA.Ground.Fairway());
-                        Instantiate(teeObject, teeObject.transform.position, teeObject.transform.rotation);
-                        UIController.DeactivateMinors();
-                        ClickAction = ClickType.NONE;
-                        c.FastBuild(c.data);
-                        c.BuildTexture(c.data);
-                        ResetState();
+                        int triangle = hit.triangleIndex;
+
+                        Chunk c = hit.collider.GetComponent<Chunk>();
+
+                        float y = ((triangle / 2) % (int)c.Size.x);
+                        float x = (triangle / ((int)c.Size.x * 2));
+
+                        float globalY = c.getGlobalPointFromLocal(x, y).y;
+                        float globalX = c.getGlobalPointFromLocal(x, y).x;
+
+                        float lowest = Family.GetLowestElevationUnderTileGlobalRaycast(globalX, globalY);
+
+                        teeObject.Position = new Vector3(globalX + 0.5f, lowest + 0.03f, globalY + 0.5f);
+                        teeObject.family = Family;
+
+                        if (newTileThisFrame)
+                        {
+                            if (Family.CurrentHoleCreating.currentPin && teeObject)
+                                Family.CurrentHoleCreating.CalculateTempLine(teeObject, Family.CurrentHoleCreating.currentPin);
+                        }
+
+                        if (Input.GetMouseButtonUp(0))
+                        {
+                            Family.ModifyChunkDataPointTileElevationGlobally((int)globalX, (int)globalY, lowest);
+                            Family.ModifyChunkDataPointTypeGlobally((int)globalX, (int)globalY, new GA.Ground.Fairway());
+                            Tees newTees = Instantiate(teeObject, teeObject.transform.position, teeObject.transform.rotation);
+                            UIController.DeactivateMinors();
+                            ClickAction = ClickType.NONE;
+                            c.FastBuild(c.data);
+                            c.BuildTexture(c.data);
+                            ResetState();
+
+                            newTees.OnPlacement(Family, UIController);
+                        }
                     }
                 }
             }
-        }
-        else if (obj == "pin")
-        {
-            if (pinObject == null)
-                pinObject = Instantiate(pinPrefab) as Pin;
-
-            Debug.DrawRay(Camera.main.transform.position, r.direction * 100, Color.blue, 0.1f);
-            RaycastHit hit;
-            if (Physics.Raycast(r, out hit, 100f))
+            else if (obj == "pin")
             {
-                if (hit.collider.GetComponent<Chunk>() != null)
+                if (pinObject == null)
+                    pinObject = Instantiate(pinPrefab) as Pin;
+
+                if (Family.CurrentHoleCreating == null)
                 {
-                    int triangle = hit.triangleIndex;
+                    Family.CurrentHoleCreating = Instantiate(holePrefab);
+                    Family.CurrentHoleCreating.Init(Family, UIController);
+                    Family.CurrentHoleCreating.OnCreation();
+                }
 
-                    Chunk c = hit.collider.GetComponent<Chunk>();
+                if (!Family.CurrentHoleCreating.ConstructingCurrently)
+                {
+                    Family.CurrentHoleCreating.OnStartConstruction();
+                    Family.CurrentHoleCreating.ConstructingCurrently = true;
+                }
 
-                    float y = ((triangle / 2) % (int)c.Size.x);
-                    float x = (triangle / ((int)c.Size.x * 2));
-
-                    float globalY = c.getGlobalPointFromLocal(x, y).y;
-                    float globalX = c.getGlobalPointFromLocal(x, y).x;
-
-                    float lpX = (int)((hit.point.x % 1) * 8);
-                    float lpY = (int)((hit.point.z % 1) * 8);
-
-                    float pX = (lpX / 8f) + globalX;
-                    float pY = (lpY / 8f) + globalY;
-                    float pE = Family.GetElevationUnderPointGlobalRaycast(pX, pY);
-
-                    Material[] pinMaterials;
-                    pinMaterials = pinObject.GetComponent<MeshRenderer>().materials;
-                    if (Family.GetChunkDataPointTypeofGroundTypeGlobally((int)globalX, (int)globalY) != typeof(GA.Ground.Green))
-                    {                      
-                        foreach(Material m in pinMaterials)
-                        {
-                            m.color = new Color(0.6f, 0.6f, 0.6f, 0.6f);
-                        }
-                    }
-                    else
+                Debug.DrawRay(Camera.main.transform.position, r.direction * 100, Color.blue, 0.1f);
+                RaycastHit hit;
+                if (Physics.Raycast(r, out hit, 100f))
+                {
+                    if (hit.collider.GetComponent<Chunk>() != null)
                     {
-                        foreach (Material m in pinMaterials)
+                        int triangle = hit.triangleIndex;
+
+                        Chunk c = hit.collider.GetComponent<Chunk>();
+
+                        float y = ((triangle / 2) % (int)c.Size.x);
+                        float x = (triangle / ((int)c.Size.x * 2));
+
+                        float globalY = c.getGlobalPointFromLocal(x, y).y;
+                        float globalX = c.getGlobalPointFromLocal(x, y).x;
+
+                        float lpX = (int)((hit.point.x % 1) * 8);
+                        float lpY = (int)((hit.point.z % 1) * 8);
+
+                        float pX = (lpX / 8f) + globalX;
+                        float pY = (lpY / 8f) + globalY;
+                        float pE = Family.GetElevationUnderPointGlobalRaycast(pX, pY);
+
+                        Material[] pinMaterials;
+                        pinMaterials = pinObject.GetComponent<MeshRenderer>().materials;
+                        if (Family.GetChunkDataPointTypeofGroundTypeGlobally((int)globalX, (int)globalY) != typeof(GA.Ground.Green))
                         {
-                            m.color = new Color(0.6f, 0.6f, 0.6f, 1f);
+                            foreach (Material m in pinMaterials)
+                            {
+                                m.color = new Color(0.6f, 0.6f, 0.6f, 0.6f);
+                            }
                         }
-                    }
+                        else
+                        {
+                            foreach (Material m in pinMaterials)
+                            {
+                                m.color = new Color(0.6f, 0.6f, 0.6f, 1f);
+                            }
+                        }
 
-                    pinObject.PositionFine = new Vector3(pX + (1f / 16f), pE + 0.12f, pY + (1f / 16f));
+                        pinObject.PositionFine = new Vector3(pX + (1f / 16f), pE + 0.12f, pY + (1f / 16f));
 
-                    if (Input.GetMouseButtonUp(0) && Family.GetChunkDataPointTypeofGroundTypeGlobally((int)globalX, (int)globalY) == typeof(GA.Ground.Green))
-                    {
-                        c.SetPositionAsHole((int)x, (int)y, (int)(lpX), (int)(lpY));
-                        c.BuildTexture(c.data);
-                        Pin newPin = Instantiate(pinObject, pinObject.transform.position, pinObject.transform.rotation);
-                        newPin.PositionFine = new Vector3(pX + (1f / 16f), pE - 0.03f, pY + (1f / 16f));
-                        UIController.DeactivateMinors();
-                        ClickAction = ClickType.NONE;
-                        ResetState();
+                        if (newTileThisFrame)
+                        {
+                            if (Family.CurrentHoleCreating.TeesList.Count > 0 && pinObject)
+                                Family.CurrentHoleCreating.CalculateTempLine(Family.CurrentHoleCreating.TeesList[0], pinObject);
+                        }
+
+                        if (Input.GetMouseButtonUp(0) && Family.GetChunkDataPointTypeofGroundTypeGlobally((int)globalX, (int)globalY) == typeof(GA.Ground.Green))
+                        {
+                            c.SetPositionAsHole((int)x, (int)y, (int)(lpX), (int)(lpY));
+                            c.BuildTexture(c.data);
+                            Pin newPin = Instantiate(pinObject, pinObject.transform.position, pinObject.transform.rotation);
+                            newPin.PositionFine = new Vector3(pX + (1f / 16f), pE - 0.03f, pY + (1f / 16f));
+                            UIController.DeactivateMinors();
+                            ClickAction = ClickType.NONE;
+                            ResetState();
+
+                            newPin.OnPlacement(Family, UIController);
+                        }
                     }
                 }
             }
