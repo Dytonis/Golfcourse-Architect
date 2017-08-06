@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,6 +20,7 @@ public class UIController : MonoBehaviour
     public RectTransform TopBarHoleContructor;
     public HoleProperties HoleProperties;
     public RectTransform BarOutCurrently = null;
+    public MessageBar MessageBar;
 
     public bool OverUIController = false;
 
@@ -66,5 +68,21 @@ public class UIController : MonoBehaviour
             rect.anchoredPosition = pos;
             yield return new WaitForEndOfFrame();
         } while (!pos.Equals(to));
+    }
+
+    public IEnumerator MoveRect(RectTransform rect, Vector2 to, Vector2 from, float speed, Action callback)
+    {
+        float t = 0;
+        Vector2 pos = from;
+        float journeyLength = Vector2.Distance(to, from);
+        do
+        {
+            t += Time.deltaTime * speed;
+            pos = Vector2.Lerp(from, to, t);
+            rect.anchoredPosition = pos;
+            yield return new WaitForEndOfFrame();
+        } while (!pos.Equals(to));
+
+        callback();
     }
 }

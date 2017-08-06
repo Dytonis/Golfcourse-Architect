@@ -23,8 +23,11 @@ public class ScreenClick : MonoBehaviour
 
     private Vector2 mousePositionLastFrame = Vector2.zero;
     private Vector2 lastTileHovered = new Vector2();
+    private Vector2 lastSubTileHovered = new Vector2();
     private bool newTileThisFrame = false;
+    private bool newSubTileThisFrame = false;
     private Vector2 currentTileHovered = new Vector2();
+    private Vector2 currentSubTileHovered = new Vector2();
     // Update is called once per frame
     void Update()
     {
@@ -52,6 +55,13 @@ public class ScreenClick : MonoBehaviour
                 float globalY = c.getGlobalPointFromLocal(x, y).y;
                 float globalX = c.getGlobalPointFromLocal(x, y).x;
 
+                float lpX = (int)((hit.point.x % 1) * 8);
+                float lpY = (int)((hit.point.z % 1) * 8);
+
+                float pX = (lpX / 8f) + globalX;
+                float pY = (lpY / 8f) + globalY;
+
+                currentSubTileHovered = new Vector2(pX, pY);
                 currentTileHovered = new Vector2(globalX, globalY);
             }
         }
@@ -63,6 +73,15 @@ public class ScreenClick : MonoBehaviour
         else
         {
             newTileThisFrame = true;
+        }
+
+        if(currentSubTileHovered.x == lastSubTileHovered.x && currentSubTileHovered.y == lastSubTileHovered.y)
+        {
+            newSubTileThisFrame = false;
+        }
+        else
+        {
+            newSubTileThisFrame = true;
         }
 
         if (ClickAction == ClickType.PLACE_TILE_FAIRWAY)
@@ -78,6 +97,7 @@ public class ScreenClick : MonoBehaviour
 
         mousePositionLastFrame = Input.mousePosition;
         lastTileHovered = currentTileHovered;
+        lastSubTileHovered = currentSubTileHovered;
     }
 
     public void ResetState()
@@ -90,6 +110,14 @@ public class ScreenClick : MonoBehaviour
         if (pinObject)
         {
             Destroy(pinObject.gameObject);
+        }
+
+        if(Family.CurrentHoleCreating)
+        {
+            if(Family.CurrentHoleCreating.line)
+            {
+                Family.CurrentHoleCreating.line.enabled = false;
+            }
         }
     }
 
@@ -114,7 +142,7 @@ public class ScreenClick : MonoBehaviour
                     Family.CurrentHoleCreating.OnCreation();
                 }
 
-                if (Family.CurrentHoleCreating.ConstructingCurrently == false)
+                else if (Family.CurrentHoleCreating.ConstructingCurrently == false)
                 {
                     Family.CurrentHoleCreating.OnStartConstruction();
                     Family.CurrentHoleCreating.ConstructingCurrently = true;
@@ -147,11 +175,17 @@ public class ScreenClick : MonoBehaviour
                                 Family.CurrentHoleCreating.CalculateTempLine(teeObject, Family.CurrentHoleCreating.currentPin);
                         }
 
+                        if (Family.CurrentHoleCreating.line == null)
+                            Family.CurrentHoleCreating.line = Family.CurrentHoleCreating.GetDrawLine();
+
+                        Family.CurrentHoleCreating.lineTeeObject = teeObject;
+
                         if (Input.GetMouseButtonUp(0))
                         {
                             Family.ModifyChunkDataPointTileElevationGlobally((int)globalX, (int)globalY, lowest);
                             Family.ModifyChunkDataPointTypeGlobally((int)globalX, (int)globalY, new GA.Ground.Fairway());
                             Tees newTees = Instantiate(teeObject, teeObject.transform.position, teeObject.transform.rotation);
+                            newTees.CreateFencing();
                             UIController.DeactivateMinors();
                             ClickAction = ClickType.NONE;
                             c.FastBuild(c.data);
@@ -223,11 +257,19 @@ public class ScreenClick : MonoBehaviour
 
                         pinObject.PositionFine = new Vector3(pX + (1f / 16f), pE + 0.12f, pY + (1f / 16f));
 
-                        if (newTileThisFrame)
+                        if (newSubTileThisFrame)
                         {
                             if (Family.CurrentHoleCreating.TeesList.Count > 0 && pinObject)
                                 Family.CurrentHoleCreating.CalculateTempLine(Family.CurrentHoleCreating.TeesList[0], pinObject);
                         }
+
+                        if (Family.CurrentHoleCreating.line == null)
+                            Family.CurrentHoleCreating.line = Family.CurrentHoleCreating.GetDrawLine();
+                        
+                        if(Family.CurrentHoleCreating.TeesList.Count > 0)
+                            Family.CurrentHoleCreating.lineTeeObject = Family.CurrentHoleCreating.TeesList[0];
+
+                        Family.CurrentHoleCreating.pinLineObject = pinObject;
 
                         if (Input.GetMouseButtonUp(0) && Family.GetChunkDataPointTypeofGroundTypeGlobally((int)globalX, (int)globalY) == typeof(GA.Ground.Green))
                         {

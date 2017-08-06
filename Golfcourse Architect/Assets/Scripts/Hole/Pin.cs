@@ -39,5 +39,7 @@ public class Pin : MonoBehaviour
             family.CurrentHoleCreating.CalculateTargetLine();
             family.CurrentHoleCreating.OnValidation();
         }
+
+        Destroy(family.CurrentHoleCreating.line.gameObject);
     }
 }

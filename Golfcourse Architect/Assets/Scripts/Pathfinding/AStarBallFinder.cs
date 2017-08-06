@@ -14,6 +14,8 @@ namespace GA.Pathfinding
 
         public Vector2 globalStart, globalTarget;
 
+        public bool Abort = false;
+
         ChunkFamily family;
 
         public DebugHelper helper;
@@ -36,6 +38,9 @@ namespace GA.Pathfinding
             do
             {
                 AStarTile current = FindLowestOpen();
+
+                if (Abort)
+                    yield break;
 
                 if(index % 50 == 0)
                 yield return new WaitForEndOfFrame();
@@ -75,7 +80,7 @@ namespace GA.Pathfinding
                     }
                 }
                 index++;
-            } while (openList.Count > 0 && index < 375);
+            } while (openList.Count > 0 && index < 666);
 
             result = new List<Vector3>();
             backupParents(last);
