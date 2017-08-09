@@ -29,6 +29,94 @@ public class CameraControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        GetInputs();
+
+        float min = -4f;
+
+        float accelNormalized = ((-Camera.transform.localPosition.z - min) / (MinMaxZoom.y - min)) * Accel;
+        float speedNormalized = ((-Camera.transform.localPosition.z - min) / (MinMaxZoom.y - min)) * Speed;
+        float brakeNormalized = ((-Camera.transform.localPosition.z - min) / (MinMaxZoom.y - min)) * Brake;
+
+        ChangeVelocity(accelNormalized, brakeNormalized);
+        ClampSpeed(speedNormalized);
+
+        transform.Translate(new Vector3(Velocity.x, 0, Velocity.y) * Time.deltaTime);
+        HandleCameraRotation();
+        HandleZoom();
+    }
+
+    private void ChangeVelocity(float accelNormalized, float brakeNormalized)
+    {
+        if (Up)
+        {
+            Velocity = new Vector3(Velocity.x, Velocity.y + (accelNormalized * Time.deltaTime));
+        }
+        if (Down)
+        {
+            Velocity = new Vector3(Velocity.x, Velocity.y - (accelNormalized * Time.deltaTime));
+        }
+        if (Left)
+        {
+            Velocity = new Vector3(Velocity.x - (accelNormalized * Time.deltaTime), Velocity.y);
+        }
+        if (Right)
+        {
+            Velocity = new Vector3(Velocity.x + (accelNormalized * Time.deltaTime), Velocity.y);
+        }
+
+        HandleBraking(brakeNormalized);
+    }
+
+    private void HandleBraking(float brakeNormalized)
+    {
+        if (Mathf.Abs(Velocity.y) >= 0.25f)
+        {
+            if (!Up && !Down)
+            {
+                if (Velocity.y > 0.01)
+                    Velocity = new Vector3(Velocity.x, Velocity.y - (brakeNormalized * Time.deltaTime));
+                else if (Velocity.y < 0.01)
+                    Velocity = new Vector3(Velocity.x, Velocity.y + (brakeNormalized * Time.deltaTime));
+            }
+        }
+
+        if (Mathf.Abs(Velocity.x) >= 0.25f)
+        {
+            if (!Left && !Right)
+            {
+                if (Velocity.x > 0.01)
+                    Velocity = new Vector3(Velocity.x - (brakeNormalized * Time.deltaTime), Velocity.y);
+                else if (Velocity.x < 0.01)
+                    Velocity = new Vector3(Velocity.x + (brakeNormalized * Time.deltaTime), Velocity.y);
+            }
+        }
+    }
+
+    private void ClampSpeed(float speedNormalized)
+    {
+        if (Velocity.y > speedNormalized)
+            Velocity = new Vector3(Velocity.x, speedNormalized);
+        if (Velocity.y < -speedNormalized)
+            Velocity = new Vector3(Velocity.x, -speedNormalized);
+        if (Velocity.x > speedNormalized)
+            Velocity = new Vector3(speedNormalized, Velocity.y);
+        if (Velocity.x < -speedNormalized)
+            Velocity = new Vector3(-speedNormalized, Velocity.y);
+
+        if (!Up && !Down)
+        {
+            if (Mathf.Abs(Velocity.y) < 0.25f)
+                Velocity.y = 0;
+        }
+        if (!Right && !Left)
+        {
+            if (Mathf.Abs(Velocity.x) < 0.25f)
+                Velocity.x = 0;
+        }
+    }
+
+    private void GetInputs()
+    {
         if (Input.GetKey(KeyCode.LeftAlt) && !Input.GetMouseButton(1))
         {
             if (Input.mousePosition.x / Screen.width <= 0.05f)
@@ -58,75 +146,6 @@ public class CameraControl : MonoBehaviour
             Left = false;
             Right = false;
         }
-
-        float min = -4f;
-
-        float accelNormalized = ((-Camera.transform.localPosition.z - min) / (MinMaxZoom.y - min)) * Accel;
-        float speedNormalized = ((-Camera.transform.localPosition.z - min) / (MinMaxZoom.y - min)) * Speed;
-        float brakeNormalized = ((-Camera.transform.localPosition.z - min) / (MinMaxZoom.y - min)) * Brake;
-
-        if (Up)
-        {
-            Velocity = new Vector3(Velocity.x, Velocity.y + (accelNormalized * Time.deltaTime));
-        }
-        if (Down)
-        {
-            Velocity = new Vector3(Velocity.x, Velocity.y - (accelNormalized * Time.deltaTime));
-        }
-        if (Left)
-        {
-            Velocity = new Vector3(Velocity.x - (accelNormalized * Time.deltaTime), Velocity.y);
-        }
-        if (Right)
-        {
-            Velocity = new Vector3(Velocity.x + (accelNormalized * Time.deltaTime), Velocity.y);
-        }
-
-        if (Mathf.Abs(Velocity.y) >= 0.25f)
-        {
-            if (!Up && !Down)
-            {
-                if (Velocity.y > 0.01)
-                    Velocity = new Vector3(Velocity.x, Velocity.y - (brakeNormalized * Time.deltaTime));
-                else if (Velocity.y < 0.01)
-                    Velocity = new Vector3(Velocity.x, Velocity.y + (brakeNormalized * Time.deltaTime));
-            }
-        }
-
-        if (Mathf.Abs(Velocity.x) >= 0.25f)
-        {
-            if (!Left && !Right)
-            {
-                if (Velocity.x > 0.01)
-                    Velocity = new Vector3(Velocity.x - (brakeNormalized * Time.deltaTime), Velocity.y);
-                else if (Velocity.x < 0.01)
-                    Velocity = new Vector3(Velocity.x + (brakeNormalized * Time.deltaTime), Velocity.y);
-            }
-        }
-
-        if (Velocity.y > speedNormalized)
-            Velocity = new Vector3(Velocity.x, speedNormalized);
-        if (Velocity.y < -speedNormalized)
-            Velocity = new Vector3(Velocity.x, -speedNormalized);
-        if (Velocity.x > speedNormalized)
-            Velocity = new Vector3(speedNormalized, Velocity.y);
-        if (Velocity.x < -speedNormalized)
-            Velocity = new Vector3(-speedNormalized, Velocity.y);
-
-        if (!Up && !Down)
-        {
-            if (Mathf.Abs(Velocity.y) < 0.25f)
-                Velocity.y = 0;
-        }
-        if (!Right && !Left)
-        {
-            if (Mathf.Abs(Velocity.x) < 0.25f)
-                Velocity.x = 0;
-        }
-
-        transform.Translate(new Vector3(Velocity.x, 0, Velocity.y) * Time.deltaTime);
-        HandleCameraRotation();
-        HandleZoom();
     }
 
     public void HandleZoom()

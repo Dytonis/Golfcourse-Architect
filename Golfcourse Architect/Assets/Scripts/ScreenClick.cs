@@ -123,7 +123,7 @@ public class ScreenClick : MonoBehaviour
 
     Tees teeObject = new Tees();
     Pin pinObject = new Pin();
-    private void PlaceHoleObject(Ray r, string obj)
+    private void PlaceHoleObject(Ray r, string obj) //needs refactoring, cyclomatic complexity is 30
     {
         if (mouseVelocityLastFrame == Vector2.zero && Input.GetMouseButtonUp(0) == false)
         {
