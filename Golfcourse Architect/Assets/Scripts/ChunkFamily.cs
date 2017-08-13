@@ -14,17 +14,32 @@ public class ChunkFamily : MonoBehaviour
 
     public Chunk ChunkPrefab;
     public GameObject ChunkEdgePrefab;
+    public StandardGamemode Gamemode;
     GameObject edgeTreeParent;
 
     public bool CreatingHole = false;
     public Hole CurrentHoleCreating;
     public List<Hole> HoleList = new List<Hole>();
 
+    public int InitState = 0;
+    public bool Initialized = false;
+
     public Vector2 globalSize
     {
         get
         {
             return new Vector2(ChunkPrefab.Size.x * Size.x, ChunkPrefab.Size.y * Size.y);
+        }
+    }
+
+    public void UpdateInit()
+    {
+        InitState++;
+
+        if (InitState == 2)
+        {
+            Initialized = true;
+            Gamemode.StartGame();
         }
     }
 
@@ -81,6 +96,8 @@ public class ChunkFamily : MonoBehaviour
             c.PlaceAllObjectsPrimitive(c.data);
             yield return new WaitForEndOfFrame();
         }
+
+        UpdateInit();
     }
 
     public void BuildAllChunks()
@@ -445,6 +462,8 @@ public class ChunkFamily : MonoBehaviour
             }
             index++;
         }
+
+        UpdateInit();
     }
 
     public void ModifyChunkDataGlobally(int x, int y, ChunkDataPoint newData)

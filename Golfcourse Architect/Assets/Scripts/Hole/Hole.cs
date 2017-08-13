@@ -142,7 +142,8 @@ public class Hole : MonoBehaviour
         if (t)
         {
             t.transform.LookAt(new Vector3(CompressedLine[t][1].x, t.transform.position.y, CompressedLine[t][1].z), Vector3.up);
-            t.Fencing.transform.localRotation = Quaternion.Euler(0, -t.transform.localRotation.eulerAngles.y, 0);
+            if(t.Fencing)
+                t.Fencing.transform.localRotation = Quaternion.Euler(0, -t.transform.localRotation.eulerAngles.y, 0);
             t.family = family;
             t.UpdateHeights();
 
@@ -287,7 +288,7 @@ public class Hole : MonoBehaviour
 
     public void OnCreation()
     {
-        family.HoleList.Add(this);
+        
     }
 
     public void OnValidation()
@@ -297,6 +298,7 @@ public class Hole : MonoBehaviour
 
     public void OnOpen()
     {
+        family.HoleList.Add(this);
         Open = true;
         ConstructingCurrently = false;
         OnStopConstruction();
