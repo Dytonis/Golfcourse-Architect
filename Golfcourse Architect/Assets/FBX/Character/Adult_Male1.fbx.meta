@@ -53,6 +53,7 @@ ModelImporter:
     7400008: metarig|Walk
     7400010: metarig|Swing_Full_Medium
     7400012: metarig|Swing_Full_Medium (2)
+    7400014: metarig|Tee_Ball
     9500000: //RootNode
     13700000: Cube
   materials:
@@ -374,6 +375,81 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Cube
+        weight: 1
+      - path: metarig
+        weight: 1
+      - path: metarig/LeftLeg
+        weight: 1
+      - path: metarig/LeftLeg/LeftFoot
+        weight: 1
+      - path: metarig/LeftLeg/LeftFoot/LeftFoot_end
+        weight: 1
+      - path: metarig/RightLeg
+        weight: 1
+      - path: metarig/RightLeg/RightFoot
+        weight: 1
+      - path: metarig/RightLeg/RightFoot/RightFoot_end
+        weight: 1
+      - path: metarig/Torso
+        weight: 1
+      - path: metarig/Torso/Head
+        weight: 1
+      - path: metarig/Torso/Head/Head_end
+        weight: 1
+      - path: metarig/Torso/LeftForearm
+        weight: 1
+      - path: metarig/Torso/LeftForearm/LeftHand
+        weight: 1
+      - path: metarig/Torso/LeftForearm/LeftHand/LeftBone
+        weight: 1
+      - path: metarig/Torso/LeftForearm/LeftHand/LeftBone/LeftBone_end
+        weight: 1
+      - path: metarig/Torso/RightForearm
+        weight: 1
+      - path: metarig/Torso/RightForearm/RightHand
+        weight: 1
+      - path: metarig/Torso/RightForearm/RightHand/RightBone
+        weight: 1
+      - path: metarig/Torso/RightForearm/RightHand/RightBone/RightBone_end
+        weight: 1
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: metarig|Tee_Ball
+      takeName: metarig|Tee_Ball
+      firstFrame: 0
+      lastFrame: 30
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.5016722
+        functionName: AE_PlaceTee
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask:
       - path: 
         weight: 1

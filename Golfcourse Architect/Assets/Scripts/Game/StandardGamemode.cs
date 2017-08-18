@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using GA.Game.AI;
 
 public class StandardGamemode : MonoBehaviour
 {
@@ -21,6 +22,37 @@ public class StandardGamemode : MonoBehaviour
     public float GolferSpawnChance = 0.01f;
 
     public bool Started = false;
+
+    public Tees getTeebox(TeeTypes type, int hole)
+    {
+        if (family.HoleList.Count >= hole - 1)
+        {
+            Dictionary<int, int> types = new Dictionary<int, int>();
+
+            int index = 0;
+            foreach(Tees t in family.HoleList[hole - 1].TeesList)
+            {
+                types.Add((int)t.TeeType, index);
+                index++;
+            }
+
+            if ((int)type == 0)
+                return family.HoleList[hole - 1].TeesList[0];
+
+            if (types.ContainsKey((int)type))
+                return family.HoleList[hole - 1].TeesList[types[(int)type]];
+            else
+            {
+                for(int i = 1; i < 8; i++)
+                {
+                    if (types.ContainsKey((int)type - i))
+                        return family.HoleList[hole - 1].TeesList[types[(int)type - i]];
+                }
+            }
+        }
+
+        return null;
+    }
 
     public void StartGame()
     {
@@ -105,11 +137,11 @@ public class StandardGamemode : MonoBehaviour
                     Golfer g = Instantiate(GolferPrefab, clubhouse.GolferInitialSpawnPoint.transform.position, GolferPrefab.transform.rotation) as Golfer;
                     g.Init();
                     g.gamemode = this;
+                    g.clubhouse = clubhouse;
                     g.family = family;
                     g.round.TeeTime = TimeOfDay + Random.Range(300, 1000);
                     g.StartAI();
-                    g.State = GolferAIState.Arriving;
-                    g.clubhouse = clubhouse;
+                    g.State = new AIStateArriving();
                     Golfers.Add(g);
 
                     g.StartToMovePoint(new Vector2(clubhouse.InitialMoveSpot.transform.position.x, clubhouse.InitialMoveSpot.transform.position.z));

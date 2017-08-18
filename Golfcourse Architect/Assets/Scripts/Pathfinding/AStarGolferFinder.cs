@@ -87,6 +87,7 @@ namespace GA.Pathfinding
 
             result = new List<Vector2>();
             backupParents(last);
+            result.Reverse();
             callback(result.ToArray());
             yield break;
         }
@@ -97,7 +98,7 @@ namespace GA.Pathfinding
             if (current == null)
                 return;
 
-            Debug.DrawRay(new Vector3(current.X, current.Y), Vector3.up * 100, Color.blue, 10f);
+            Debug.DrawRay(new Vector3(current.X, 0, current.Y), Vector3.up * 100, Color.red, 10f);
             result.Add(new Vector3(current.X, current.Y));
             if (current.parent != null)
             {

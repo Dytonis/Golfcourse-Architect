@@ -91,6 +91,19 @@ namespace GA.Ground
             }
         }
 
+        public override bool walkable
+        {
+            get
+            {
+                return true;
+            }
+
+            set
+            {
+                base.walkable = value;
+            }
+        }
+
         public override float friction
         {
             get
@@ -163,6 +176,19 @@ namespace GA.Ground
             }
         }
 
+        public override bool walkable
+        {
+            get
+            {
+                return true;
+            }
+
+            set
+            {
+                base.walkable = value;
+            }
+        }
+
         public override float friction
         {
             get
@@ -222,6 +248,19 @@ namespace GA.Ground
     }
     public class Green : GroundType
     {
+        public override bool walkable
+        {
+            get
+            {
+                return true;
+            }
+
+            set
+            {
+                base.walkable = value;
+            }
+        }
+
         public override float friction
         {
             get
@@ -312,8 +351,21 @@ namespace GA.Ground
             return;
         }
     }
-    public class Concrete : GroundType
+    public class Gravel : GroundType
     {
+        public override bool walkable
+        {
+            get
+            {
+                return true;
+            }
+
+            set
+            {
+                base.walkable = value;
+            }
+        }
+
         public override float friction
         {
             get
@@ -373,8 +425,8 @@ namespace GA.Ground
                 return new int[]
                 {
                     (int)GroundSprites.TRANSPARENT,
-                    (int)GroundSprites.CONCRETE,
-                    (int)GroundSprites.CONCRETE,
+                    (int)GroundSprites.GRAVEL,
+                    (int)GroundSprites.GRAVEL,
                 };
             }
         }
@@ -393,6 +445,6 @@ namespace GA.Ground
         FAIRWAY_FAST = 100,
         GREEN_STANDARD = 2,
         DARK_PLATE = 7,
-        CONCRETE = 9,
+        GRAVEL = 9,
     }
 }
