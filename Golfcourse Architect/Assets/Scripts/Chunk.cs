@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using GA.Objects;
 
 public class Chunk : MonoBehaviour
 {
@@ -11,7 +12,7 @@ public class Chunk : MonoBehaviour
     public Vector2 Size;
 
     public bool Viable;
-    public Dictionary<Vector2, NatureObject> NatureObjects = new Dictionary<Vector2, NatureObject>();
+    public Dictionary<Vector2, TileObject> TileObjects = new Dictionary<Vector2, TileObject>();
     internal List<Vector3> vertices = new List<Vector3>();
     internal Vector3[] normals;
     public int[] triangles;
@@ -151,18 +152,18 @@ public class Chunk : MonoBehaviour
         {
             for(int x = 0; x < Size.x; x++)
             {
-                if(data[x, y].ObjectResiding != ObjectID.EMPTY)
+                if(data[x, y].obj != ObjectID.EMPTY)
                 {
                     Vector2 globalPos = getGlobalPointFromLocal(x, y);
                     Vector3 pos = new Vector3(globalPos.x + 0.5f, getElevationUnderPointLocal(x + 0.5f, y + 0.5f), globalPos.y + 0.5f);
 
-                    NatureObject o = Instantiate(NatureObject.GetObjectPrefabFromID(data[x, y].ObjectResiding), pos, transform.rotation);
+                    NatureObject o = Instantiate(TileObject.GetObjectPrefabFromID<NatureObject>(data[x, y].obj), pos, transform.rotation);
                     o.transform.SetParent(transform);
                     o.source = this;
-                    o.localPosition = new Vector2(x, y);
+                    o.FlatPosition = new Vector2(x, y);
                     o.transform.localScale = new Vector3(Random.Range(0.8f, 1.2f), Random.Range(0.8f, 1.2f), Random.Range(0.8f, 1.2f));
                     o.transform.rotation = Quaternion.Euler(new Vector3(0, Random.Range(0, 360f), 0));
-                    NatureObjects.Add(o.localPosition, o);
+                    TileObjects.Add(o.FlatPosition, o);
                 }
             }
         }
@@ -174,25 +175,25 @@ public class Chunk : MonoBehaviour
         {
             for (int x = 0; x < Size.x; x++)
             {
-                ObjectID currentID = data[x, y].ObjectResiding;
+                ObjectID currentID = data[x, y].obj;
                 try
                 {
-                    if (NatureObjects[new Vector2(x, y)].objectID != currentID)
+                    if (TileObjects[new Vector2(x, y)].objectID != currentID)
                     {
-                        Destroy(NatureObjects[new Vector2(x, y)].gameObject);
+                        Destroy(TileObjects[new Vector2(x, y)].gameObject);
 
                         if (currentID != ObjectID.EMPTY)
                         {
                             Vector2 globalPos = getGlobalPointFromLocal(x, y);
                             Vector3 pos = new Vector3(globalPos.x + 0.5f, getElevationUnderPointLocal(x + 0.5f, y + 0.5f), globalPos.y + 0.5f);
 
-                            NatureObject o = Instantiate(NatureObject.GetObjectPrefabFromID(currentID), pos, transform.rotation);
+                            TileObject o = Instantiate(TileObject.GetObjectPrefabFromID(currentID), pos, transform.rotation);
                             o.transform.SetParent(transform);
                             o.source = this;
-                            o.localPosition = new Vector2(x, y);
+                            o.FlatPosition = new Vector2(x, y);
                             o.transform.localScale = new Vector3(Random.Range(0.8f, 1.2f), Random.Range(0.8f, 1.2f), Random.Range(0.8f, 1.2f));
                             o.transform.rotation = Quaternion.Euler(new Vector3(0, Random.Range(0, 360f), 0));
-                            NatureObjects.Add(o.localPosition, o);
+                            TileObjects.Add(o.FlatPosition, o);
                         }
                     }
                 }

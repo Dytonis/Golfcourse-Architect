@@ -172,7 +172,7 @@ public class ScreenClick : MonoBehaviour
                         if (newTileThisFrame)
                         {
                             if (Family.CurrentHoleCreating.currentPin && teeObject)
-                                Family.CurrentHoleCreating.CalculateTempLine(teeObject, Family.CurrentHoleCreating.currentPin);
+                                Family.CurrentHoleCreating.Construction_CalculateTempLine(teeObject, Family.CurrentHoleCreating.currentPin);
                         }
 
                         if (Family.CurrentHoleCreating.line == null)
@@ -185,6 +185,7 @@ public class ScreenClick : MonoBehaviour
                             Family.ModifyChunkDataPointTileElevationGlobally((int)globalX, (int)globalY, lowest);
                             Family.ModifyChunkDataPointTypeGlobally((int)globalX, (int)globalY, new GA.Ground.Fairway());
                             Tees newTees = Instantiate(teeObject, teeObject.transform.position, teeObject.transform.rotation);
+                            newTees.FlatPosition = new Vector2(globalX, globalY);
                             newTees.CreateFencing();
                             UIController.DeactivateMinors();
                             ClickAction = ClickType.NONE;
@@ -260,7 +261,7 @@ public class ScreenClick : MonoBehaviour
                         if (newSubTileThisFrame)
                         {
                             if (Family.CurrentHoleCreating.TeesList.Count > 0 && pinObject)
-                                Family.CurrentHoleCreating.CalculateTempLine(Family.CurrentHoleCreating.TeesList[0], pinObject);
+                                Family.CurrentHoleCreating.Construction_CalculateTempLine(Family.CurrentHoleCreating.TeesList[0], pinObject);
                         }
 
                         if (Family.CurrentHoleCreating.line == null)
@@ -309,8 +310,6 @@ public class ScreenClick : MonoBehaviour
 
                     c.data.SetGroundType(x, y, type);
                     c.BuildTexture(c.data);
-
-                    Debug.Log("Triangle " + triangle);
                 }
             }
         }

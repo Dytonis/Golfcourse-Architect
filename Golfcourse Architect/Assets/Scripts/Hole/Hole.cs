@@ -40,7 +40,126 @@ public class Hole : MonoBehaviour
         controller.HoleProperties.Title.text = Name;
     }
 
-    public void CalculateTargetLine()
+    public ShotPath Golfer_CalculateShotPosition(Golfer g, Vector2 fromPosition)
+    {
+        if (CompressedLine.ContainsKey(g.gamemode.getTeebox(g.round.TeeType, g.round.CurrentHole)))
+        {
+            List<Vector3> list = CompressedLine[g.gamemode.getTeebox(g.round.TeeType, g.round.CurrentHole)];
+
+            List<List<Vector3>> possiblePaths = new List<List<Vector3>>();
+
+            for (byte i = 0; i < Mathf.Pow((list.Count - 2), 2); i++)
+            {
+                List<Vector3> path = new List<Vector3>();
+                path.Add(new Vector3(fromPosition.x, 0, fromPosition.y));
+
+                for (byte y = 0; y < list.Count - 2; y++)
+                {
+                    if (IsBitSet(i, y))
+                    {
+                        path.Add(list[y + 1]);
+                    }
+                }
+
+                path.Add(list[list.Count - 1]); //add the first and last positions
+
+                possiblePaths.Add(path);
+            }
+
+            ShotPath reference = new ShotPath();
+            reference.yList = new List<float>();
+            reference.shotCount = list.Count;
+            reference.points = listVector3ToVector2(list);
+            for (int i = 0; i < list.Count - 1; i++)
+            {
+                reference.r += getRiskBetweenPoints(list[i], list[i + 1]); //get risk between the first list's current point and next
+                reference.yList.Add(Yard.FloatToYard(Vector2.Distance(list[i], list[i + 1])));
+                reference.y += reference.yList[i];
+            }
+            List<ShotPath> paths = new List<ShotPath>();
+            //we have all the possible paths
+            foreach (List<Vector3> path in possiblePaths)
+            {
+                ShotPath p = new ShotPath();
+                bool valid = true;
+
+                for(int i = 0; i < path.Count - 1; i++)
+                {
+                    int additionalShots = (int)(Yard.FloatToYard(Vector2.Distance(path[i], path[i + 1])) / g.Stats.DriverLength);
+                    p.r += getRiskBetweenPoints(path[i], path[i + 1]); //get risk between the current point and the next
+                    p.y += Yard.FloatToYard(Vector2.Distance(path[i], path[i + 1])) - reference.yList[i]; //calculate difference in yardage between all points path and current path points
+                    p.shotCount += additionalShots;
+                }
+
+                if (!valid) //if a shot is too far, ignore the path as it is impossible
+                    continue;
+
+                p.shotCount = path.Count;
+                p.points = listVector3ToVector2(path);
+
+                paths.Add(p);
+            }
+
+            //calculate preferred path
+            //get the lowest shot count with the lowest p score thats under MSC
+
+            ShotPath preferred = paths[0];
+
+            foreach (ShotPath p in paths)
+            {
+                if (p.p > g.Personality.MaxShotCost)
+                    continue;
+
+                if (p.shotCount <= preferred.shotCount)
+                {
+                    if (p.p < preferred.p)
+                        preferred = p;
+                }
+            }
+
+            return preferred;
+        }
+        else
+        {
+            return new ShotPath();
+        }
+    }
+
+    private float getRiskBetweenPoints(Vector2 a, Vector2 b)
+    {
+        Vector2 dir = (a - b).normalized;
+        float r = 0;
+
+        for(int i = 0; i <= (int)Vector2.Distance(a, b); i++)
+        {
+            Vector2 check = a + (dir * i);
+
+            GA.Ground.GroundType type = family.GetChunkDataPointGroundTypeGlobally((int)check.x, (int)check.y);
+
+            r += type.shotRisk;
+        }
+
+        return r;
+    }
+
+    List<Vector2> listVector3ToVector2(List<Vector3> list)
+    {
+        List<Vector2> l = new List<Vector2>();
+
+        foreach(Vector3 v in list)
+        {
+            l.Add(new Vector2(v.x, v.z));
+        }
+
+        return l;
+    }
+
+    bool IsBitSet(byte b, int pos)
+    {
+        return (b & (1 << pos)) != 0;
+    }
+
+    public void Construction_CalculateTargetLine()
     {
         foreach (Tees t in TeesList)
         {
@@ -51,7 +170,7 @@ public class Hole : MonoBehaviour
     }
 
     GA.Pathfinding.AStarBallFinder last;
-    public void CalculateTempLine(Tees t, Pin p)
+    public void Construction_CalculateTempLine(Tees t, Pin p)
     {
         Debug.DrawRay(t.Position, Vector3.up * 100, Color.black, 10f);
 
@@ -64,7 +183,7 @@ public class Hole : MonoBehaviour
         last = finder;
     }
 
-    public void CompressLine(Tees t)
+    private void CompressLine(Tees t)
     {
         List<Vector3> line;
         List<Vector3> compress = new List<Vector3>();
@@ -108,7 +227,7 @@ public class Hole : MonoBehaviour
         }
     }
 
-    public void FinishedCalculatingTargetLine(List<Vector3> vectors, Tees t)
+    private void FinishedCalculatingTargetLine(List<Vector3> vectors, Tees t)
     {
         if (vectors.Count == 0)
         {
@@ -142,7 +261,7 @@ public class Hole : MonoBehaviour
         if (t)
         {
             t.transform.LookAt(new Vector3(CompressedLine[t][1].x, t.transform.position.y, CompressedLine[t][1].z), Vector3.up);
-            if(t.Fencing)
+            if (t.Fencing)
                 t.Fencing.transform.localRotation = Quaternion.Euler(0, -t.transform.localRotation.eulerAngles.y, 0);
             t.family = family;
             t.UpdateHeights();
@@ -288,7 +407,7 @@ public class Hole : MonoBehaviour
 
     public void OnCreation()
     {
-        
+
     }
 
     public void OnValidation()
@@ -343,5 +462,21 @@ public class Hole : MonoBehaviour
         lr.startWidth = 0.1f;
         lr.endWidth = 0.1f;
         return lr;
+    }
+}
+
+public struct ShotPath
+{
+    public float y;
+    public List<float> yList;
+    public float r;
+    public List<Vector2> points;
+    public int shotCount;
+    public float p
+    {
+        get
+        {
+            return y + r;
+        }
     }
 }

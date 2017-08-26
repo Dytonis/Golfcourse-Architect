@@ -38,7 +38,7 @@ namespace GA.Game.AI
 
         public override void OnFinishedAction()
         {
-            Debug.Log("FINISHED");
+            golfer.State = new AI.AIStatePrepShot();
         }
     }
 }

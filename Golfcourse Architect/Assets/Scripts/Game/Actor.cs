@@ -144,11 +144,12 @@ public class Actor : MonoBehaviour
 
     }
 
-    public void StartToMovePoint(Vector2 point)
+    public void StartToMoveToPoint(Vector2 point, bool look = true)
     {
         StopMovementCoroutines();
         MovementCo = StartCoroutine(MoveToPoint(point));
-        LookCo = StartCoroutine(LookTowardsPoint(point));
+        if(look)
+            LookCo = StartCoroutine(LookTowardsPoint(point));
     }
 
     public void StartToPathToPoint(Vector2 point, ChunkFamily family)

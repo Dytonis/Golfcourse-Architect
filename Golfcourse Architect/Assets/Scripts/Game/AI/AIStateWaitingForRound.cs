@@ -34,7 +34,7 @@ namespace GA.Game.AI
                     float newX = wanderCenterPoint.x + Random.Range(-4f, 4f);
                     float newY = wanderCenterPoint.x + Random.Range(-4f, 4f);
 
-                    golfer.StartToMovePoint(new Vector2(newX, newY));
+                    golfer.StartToMoveToPoint(new Vector2(newX, newY));
                 }
             }
             else

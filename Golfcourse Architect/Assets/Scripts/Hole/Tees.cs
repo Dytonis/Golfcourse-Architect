@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using GA.Objects;
 using UnityEngine;
 
-public class Tees : MonoBehaviour
+public class Tees : GA.Objects.TileObject
 {
     public TeeTypes TeeType;
     public Color TeeColor = Color.white;
@@ -100,7 +101,7 @@ public class Tees : MonoBehaviour
             //this placement has finished the hole
             family.CurrentHoleCreating.Valid = true;
 
-            family.CurrentHoleCreating.CalculateTargetLine();
+            family.CurrentHoleCreating.Construction_CalculateTargetLine();
             family.CurrentHoleCreating.OnValidation();
         }
 

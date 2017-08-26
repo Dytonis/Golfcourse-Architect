@@ -2,13 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using GA.Ground;
+using GA.Objects;
 using UnityEngine;
 
 public class ChunkData
 {
     private Chunk source;
 
-    internal List<List<ChunkDataPoint>> data = new List<List<ChunkDataPoint>>();
+    internal List<List<Tile>> data = new List<List<Tile>>();
 
     public ChunkData(Chunk chunk)
     {
@@ -19,50 +20,50 @@ public class ChunkData
     {
         for (int y = 0; y < chunk.Size.y + 1; y++)
         {
-            data.Add(new List<ChunkDataPoint>());
+            data.Add(new List<Tile>());
 
             for (int x = 0; x < chunk.Size.x + 1; x++)
             {
                 if (x == chunk.Size.x || y == chunk.Size.y)
-                    data[y].Add(new ChunkDataPoint() { elevation = 0, type = new Max_Bounds() }); //Vertices that are not parents for tiles (max bounds)
+                    data[y].Add(new Tile() { elevation = 0, type = new Max_Bounds() }); //Vertices that are not parents for tiles (max bounds)
                 else
                 {
-                    data[y].Add(new ChunkDataPoint() { elevation = 0, type = new Rough_Standard() });
+                    data[y].Add(new Tile() { elevation = 0, type = new Rough_Standard() });
                 }
             }
         }
     }
 
-    public void Init(Chunk chunk, List<List<ChunkDataPoint>> copy)
+    public void Init(Chunk chunk, List<List<Tile>> copy)
     {
         for (int y = 0; y < chunk.Size.y + 1; y++)
         {
-            data.Add(new List<ChunkDataPoint>());
+            data.Add(new List<Tile>());
 
             for (int x = 0; x < chunk.Size.x + 1; x++)
             {
-                data[y].Add(new ChunkDataPoint() { elevation = copy[y][x].elevation, type = copy[y][x].type, ObjectResiding = copy[y][x].ObjectResiding }); //Vertices that are not parents for tiles (max bounds)
+                data[y].Add(new Tile() { elevation = copy[y][x].elevation, type = copy[y][x].type, obj = copy[y][x].obj }); //Vertices that are not parents for tiles (max bounds)
             }
         }
     }
 
     public void SetGroundType(int x, int y, GroundType groundType)
     {
-        data[y][x] = new ChunkDataPoint()
+        data[y][x] = new Tile()
         {
             elevation = data[y][x].elevation,
             type = groundType,
-            ObjectResiding = data[y][x].ObjectResiding
+            obj = data[y][x].obj
         };
     }
 
     public void SetObjectID(int x, int y, ObjectID id)
     {
-        data[y][x] = new ChunkDataPoint()
+        data[y][x] = new Tile()
         {
             elevation = data[y][x].elevation,
             type = data[y][x].type,
-            ObjectResiding = id
+            obj = id
         };
     }
 
@@ -70,11 +71,11 @@ public class ChunkData
     {
         try
         {
-            data[y][x] = new ChunkDataPoint()
+            data[y][x] = new Tile()
             {
                 elevation = e,
                 type = data[y][x].type,
-                ObjectResiding = data[y][x].ObjectResiding
+                obj = data[y][x].obj
             };
         }
         catch
@@ -88,7 +89,7 @@ public class ChunkData
         }
     }
 
-    public ChunkDataPoint this[int x, int y]
+    public Tile this[int x, int y]
     {
         get
         {
@@ -107,11 +108,11 @@ public class ChunkData
             {
                 if(data[y].Count >= x)
                 {
-                    data[y][x] = new ChunkDataPoint()
+                    data[y][x] = new Tile()
                     {
                         elevation = value.elevation,
                         type = value.type,
-                        ObjectResiding = data[y][x].ObjectResiding
+                        obj = data[y][x].obj
                     };
                     return;
                 }
@@ -121,9 +122,9 @@ public class ChunkData
     }
 }
 
-public struct ChunkDataPoint
+public struct Tile
 {
     public float elevation { get; set; }
     public GroundType type { get; set; }
-    public ObjectID ObjectResiding { get; set; }
+    public ObjectID obj { get; set; }
 }

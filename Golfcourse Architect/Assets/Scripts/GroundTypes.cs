@@ -18,6 +18,7 @@ namespace GA.Ground
         public virtual float spinMod { get; set;  }
         public virtual float shotWeight { get; set; }
         public virtual float walkWeight { get; set; }
+        public virtual float shotRisk { get; set; }
         public virtual bool walkable { get; set; }
 
         public abstract void OnActivate();
@@ -88,6 +89,19 @@ namespace GA.Ground
                     (int)GroundSprites.TRANSPARENT,
                     (int)GroundSprites.DARK_PLATE,
                 };
+            }
+        }
+
+        public override float shotRisk
+        {
+            get
+            {
+                return 5;
+            }
+
+            set
+            {
+                base.shotRisk = value;
             }
         }
 
@@ -228,6 +242,19 @@ namespace GA.Ground
             }
         }
 
+        public override float shotRisk
+        {
+            get
+            {
+                return 0;
+            }
+
+            set
+            {
+                base.shotRisk = value;
+            }
+        }
+
         public override float walkWeight
         {
             get
@@ -258,6 +285,19 @@ namespace GA.Ground
             set
             {
                 base.walkable = value;
+            }
+        }
+
+        public override float shotRisk
+        {
+            get
+            {
+                return 0;
+            }
+
+            set
+            {
+                base.shotRisk = value;
             }
         }
 
@@ -363,6 +403,19 @@ namespace GA.Ground
             set
             {
                 base.walkable = value;
+            }
+        }
+
+        public override float shotRisk
+        {
+            get
+            {
+                return 15;
+            }
+
+            set
+            {
+                base.shotRisk = value;
             }
         }
 

@@ -18,6 +18,7 @@ public partial class Golfer : Actor
             _state = value;
             _state.golfer = this;
             _state.OnBecameActiveState();
+            Debug.Log("AIState Switched to " + _state.GetType().ToString());
         }
     }
     public Animator AnimationController;
@@ -61,9 +62,6 @@ public partial class Golfer : Actor
 
         if(State.Complete)
         {
-            if (State.TimeComplete <= 0)
-                State.OnFinishedAction();
-
             State.TimeComplete += Time.deltaTime;
             State.OnTickDuringActionComplete();
         }
@@ -86,6 +84,8 @@ public partial class Golfer : Actor
                 myScript.State = new AIStateWaitingForRound(new Vector2(myScript.clubhouse.InitialMoveSpot.transform.position.x, myScript.clubhouse.InitialMoveSpot.transform.position.z));
                 myScript.StartAI();
             }
+
+            GUILayout.Label("MSC: " + myScript.Personality.MaxShotCost.ToString());
         }
     }
 }

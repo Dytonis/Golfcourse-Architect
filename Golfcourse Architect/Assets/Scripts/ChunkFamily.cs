@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using GA.Objects;
 
 public class ChunkFamily : MonoBehaviour
 {
@@ -452,11 +453,10 @@ public class ChunkFamily : MonoBehaviour
 
             if (rand > Mathf.SmoothStep(0, 1, distanceNomralized))
             {
-
-                NatureObject o = Instantiate(NatureObject.GetObjectPrefabFromID(id), new Vector3(pos.x, GetElevationUnderPointGlobalRaycast(pos.x, pos.y), pos.y), transform.rotation);
+                NatureObject o = Instantiate(TileObject.GetObjectPrefabFromID<NatureObject>(id), new Vector3(pos.x, GetElevationUnderPointGlobalRaycast(pos.x, pos.y), pos.y), transform.rotation);
                 o.transform.SetParent(edgeTreeParent.transform);
                 o.source = null;
-                o.localPosition = pos;
+                o.FlatPosition = pos;
                 o.transform.localScale = new Vector3(Random.Range(0.8f, 1.2f), Random.Range(0.8f, 1.2f), Random.Range(0.8f, 1.2f));
                 o.transform.rotation = Quaternion.Euler(new Vector3(0, Random.Range(0, 360f), 0));
             }
@@ -466,7 +466,7 @@ public class ChunkFamily : MonoBehaviour
         UpdateInit();
     }
 
-    public void ModifyChunkDataGlobally(int x, int y, ChunkDataPoint newData)
+    public void ModifyChunkDataGlobally(int x, int y, Tile newData)
     {
         Chunk c = chunkFromGlobalTilePos(x, y);
 

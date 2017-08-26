@@ -10,7 +10,19 @@ namespace GA.Game.AI
     public class AIState
     {
         public Golfer golfer;
-        public bool Complete;
+        private bool _complete;
+        public bool Complete
+        {
+            get
+            {
+                return _complete;
+            }
+            set
+            {
+                OnFinishedAction();
+                _complete = value;
+            }
+        }
         public float TimeComplete;
 
         protected byte AnimationIndex = 0;

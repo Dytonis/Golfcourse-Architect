@@ -36,7 +36,7 @@ public class Pin : MonoBehaviour
             //this placement has finished the hole
             family.CurrentHoleCreating.Valid = true;
 
-            family.CurrentHoleCreating.CalculateTargetLine();
+            family.CurrentHoleCreating.Construction_CalculateTargetLine();
             family.CurrentHoleCreating.OnValidation();
         }
 

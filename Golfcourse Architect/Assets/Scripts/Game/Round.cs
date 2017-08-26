@@ -15,6 +15,9 @@ namespace GA.Game
 
         public float TeeTime;
 
+        /// <summary>
+        /// The current hole 1 based
+        /// </summary>
         public int CurrentHole;
 
         public bool Started;

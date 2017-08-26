@@ -10,8 +10,6 @@ public class BallPathSolver : MonoBehaviour
     public Vector3 target;
     public int Level = 900;
 
-    public float tileSizeInYards = 5;
-
     public ShotType type;
     public Ball ball;
     public Vector3 currentPos;
@@ -28,54 +26,6 @@ public class BallPathSolver : MonoBehaviour
     public float a;
 
     public List<Vector3> points = new List<Vector3>();
-
-    public void Start()
-    {
-        StartCoroutine(waiter());
-        //a += 0.01f * Time.deltaTime;
-    }
-
-    public IEnumerator waiter()
-    {
-        yield return new WaitForSeconds(0.5f);
-
-        float gap = Vector3.Distance(startingPos, new Vector3(target.x, startingPos.y, target.z));
-
-        RaycastHit hit;
-        if (Physics.Raycast(new Vector3(target.x, 100, target.z), Vector3.down, out hit, 200))
-        {
-            target = new Vector3(target.x, hit.point.y, target.z);
-        }
-
-        RaycastHit hit2;
-        if (Physics.Raycast(new Vector3(startingPos.x, 100, startingPos.z), Vector3.down, out hit2, 200))
-        {
-            startingPos = new Vector3(startingPos.x, hit2.point.y, startingPos.z);
-        }
-
-        Vector3 heading = new Vector3(target.x, startingPos.y, target.z) - startingPos;
-        Vector3 dir = heading / heading.magnitude;
-        float elevationGain = startingPos.y - target.y;
-        Vector3 carryLocation = heading / (1.05f + (elevationGain / 25f));
-        float CarryDistance = Vector3.Distance(startingPos, carryLocation);
-        Carry = Yard.FloatToYard(CarryDistance);
-        TotalDistance = Yard.FloatToYard(gap);
-
-        ClubSelected = ClubStat.GetClubFromDistance(Level, Carry);
-        ClubSelectedName = ClubSelected.uiname;
-
-        Debug.DrawRay(carryLocation, Vector3.up, Color.yellow, 100f);
-
-        switch (type)
-        {
-            case ShotType.Putt:
-                StartCoroutine(AttemptToFindPutt(8));
-                break;
-            case ShotType.Standard:
-                StartCoroutine(AttemptToFindStandard(10, solverCount: 100, speedRangeMax: 2.9f, speedChecks: 20f));
-                break;
-        }
-    }
 
     public void Solved(bool final)
     {
@@ -216,7 +166,39 @@ public class BallPathSolver : MonoBehaviour
         yield break;
     }
 
-    public IEnumerator AttemptToFindStandard(float angularSize = 8, float speedChecks = 0.05f, int angleChecks = 16, float speedRangeMax = 2f, int solverCount = 60, bool final = false)
+    public void StartAttempToFindStandard()
+    {
+        float gap = Vector3.Distance(startingPos, new Vector3(target.x, startingPos.y, target.z));
+
+        RaycastHit hit;
+        if (Physics.Raycast(new Vector3(target.x, 100, target.z), Vector3.down, out hit, 200))
+        {
+            target = new Vector3(target.x, hit.point.y, target.z);
+        }
+
+        RaycastHit hit2;
+        if (Physics.Raycast(new Vector3(startingPos.x, 100, startingPos.z), Vector3.down, out hit2, 200))
+        {
+            startingPos = new Vector3(startingPos.x, hit2.point.y, startingPos.z);
+        }
+
+        Vector3 heading = new Vector3(target.x, startingPos.y, target.z) - startingPos;
+        Vector3 dir = (heading / heading.magnitude).normalized;
+        float elevationGain = startingPos.y - target.y;
+        Vector3 carryLocation = target - (dir * (gap * 0.05f));
+        float CarryDistance = Vector3.Distance(startingPos, carryLocation);
+        Carry = Yard.FloatToYard(CarryDistance);
+        TotalDistance = Yard.FloatToYard(gap);
+
+        ClubSelected = ClubStat.GetClubFromDistance(Level, Carry);
+        ClubSelectedName = ClubSelected.uiname;
+
+        Debug.DrawRay(carryLocation, Vector3.up, Color.yellow, 100f);
+
+        StartCoroutine(AttemptToFindStandard(10, solverCount: 100, speedRangeMax: 2.9f, speedChecks: 20f));
+    }
+
+    private IEnumerator AttemptToFindStandard(float angularSize = 8, float speedChecks = 0.05f, int angleChecks = 16, float speedRangeMax = 2f, int solverCount = 60, bool final = false)
     {
         float e = startingPos.y;
         RaycastHit hit;

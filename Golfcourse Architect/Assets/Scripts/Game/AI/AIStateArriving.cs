@@ -10,7 +10,7 @@ namespace GA.Game.AI
     {
         public override void OnBecameActiveState()
         {
-            golfer.StartToMovePoint(golfer.clubhouse.InitialMoveSpot.transform.position); //AIState will handle the completion of movement by default
+            golfer.StartToMoveToPoint(golfer.clubhouse.InitialMoveSpot.transform.position); //AIState will handle the completion of movement by default
         }
 
         public override void OnFinishedAction()

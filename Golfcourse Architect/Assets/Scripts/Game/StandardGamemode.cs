@@ -22,7 +22,13 @@ public class StandardGamemode : MonoBehaviour
     public float GolferSpawnChance = 0.01f;
 
     public bool Started = false;
-
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="type">The type of hole the golfer prefers</param>
+    /// <param name="hole">The current hole 1 based</param>
+    /// <returns></returns>
     public Tees getTeebox(TeeTypes type, int hole)
     {
         if (family.HoleList.Count >= hole - 1)
@@ -144,7 +150,7 @@ public class StandardGamemode : MonoBehaviour
                     g.State = new AIStateArriving();
                     Golfers.Add(g);
 
-                    g.StartToMovePoint(new Vector2(clubhouse.InitialMoveSpot.transform.position.x, clubhouse.InitialMoveSpot.transform.position.z));
+                    g.StartToMoveToPoint(new Vector2(clubhouse.InitialMoveSpot.transform.position.x, clubhouse.InitialMoveSpot.transform.position.z));
                     clubhouse.OpenDoorThenClose(2);
                 }
             }
