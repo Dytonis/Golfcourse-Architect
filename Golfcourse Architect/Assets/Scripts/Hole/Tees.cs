@@ -105,7 +105,8 @@ public class Tees : GA.Objects.TileObject
             family.CurrentHoleCreating.OnValidation();
         }
 
-        Destroy(family.CurrentHoleCreating.line.gameObject);
+        if(family.CurrentHoleCreating.line)
+            Destroy(family.CurrentHoleCreating.line.gameObject);
     }
 }
 

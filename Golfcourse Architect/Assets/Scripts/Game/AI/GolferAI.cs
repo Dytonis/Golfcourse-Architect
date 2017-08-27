@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using GA.Game.AI;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 public partial class Golfer : Actor
 {
@@ -71,6 +73,7 @@ public partial class Golfer : Actor
         }
     }
 
+#if UNITY_EDITOR
     [CustomEditor(typeof(Golfer))]
     public class GolferEditor : Editor
     {
@@ -88,7 +91,9 @@ public partial class Golfer : Actor
             GUILayout.Label("MSC: " + myScript.Personality.MaxShotCost.ToString());
         }
     }
+#endif
 }
+
 
 public enum GolferAIState
 {

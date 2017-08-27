@@ -175,8 +175,8 @@ public class ScreenClick : MonoBehaviour
                                 Family.CurrentHoleCreating.Construction_CalculateTempLine(teeObject, Family.CurrentHoleCreating.currentPin);
                         }
 
-                        if (Family.CurrentHoleCreating.line == null)
-                            Family.CurrentHoleCreating.line = Family.CurrentHoleCreating.GetDrawLine();
+                        //if (Family.CurrentHoleCreating.line == null)
+                            //Family.CurrentHoleCreating.line = Family.CurrentHoleCreating.GetDrawLine();
 
                         Family.CurrentHoleCreating.lineTeeObject = teeObject;
 

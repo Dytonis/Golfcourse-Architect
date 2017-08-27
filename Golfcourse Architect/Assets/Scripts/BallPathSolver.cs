@@ -287,8 +287,8 @@ public class BallPathSolver : MonoBehaviour
 
                             Debug.DrawRay(slope.hit.point, invNomral, Color.green, 0.001f);
 
-                            velocity = invNomral * slope.groundType.bounce;
-                            velocity.Set(velocity.x, velocity.y * (slope.groundType.bounce), velocity.z);
+                            velocity = invNomral * slope.groundType.restitution;
+                            velocity.Set(velocity.x, velocity.y * (slope.groundType.restitution), velocity.z);
 
                             Debug.DrawRay(slope.hit.point, velocity, Color.blue, 0.001f);
                         }
@@ -627,6 +627,7 @@ public struct SlopePackage
     public GA.Ground.GroundType groundType;
     public bool detected;
     public Vector3 dirNormalized;
+    public Vector3 normal;
     public float magnitude;
     public RaycastHit hit;
 }

@@ -21,6 +21,7 @@ public class Hole : MonoBehaviour
     public Dictionary<Tees, List<Vector3>> TargetLine = new Dictionary<Tees, List<Vector3>>();
     public Dictionary<Tees, List<Vector3>> CompressedLine = new Dictionary<Tees, List<Vector3>>();
     public LineRenderer line;
+    public Material lineMaterial;
 
     //Public<Golfer> golferQueue
 
@@ -456,7 +457,7 @@ public class Hole : MonoBehaviour
         myLine.transform.position = Vector3.zero;
         myLine.AddComponent<LineRenderer>();
         LineRenderer lr = myLine.GetComponent<LineRenderer>();
-        lr.material = new Material(Shader.Find("Particles/Alpha Blended Premultiply"));
+        lr.material = lineMaterial;
         lr.startColor = Color.white;
         lr.endColor = Color.white;
         lr.startWidth = 0.1f;

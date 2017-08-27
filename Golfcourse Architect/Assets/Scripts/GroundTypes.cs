@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEditor;
 using UnityEngine;
 
 namespace GA.Ground
@@ -10,7 +9,13 @@ namespace GA.Ground
     public abstract class GroundType
     {
         public abstract int[] spriteChildPath { get; }
-        public virtual float bounce { get; set; }
+        /// <summary>
+        /// The bounce reduction
+        /// </summary>
+        public virtual float restitution { get; set; }
+        /// <summary>
+        /// Parallel reduction
+        /// </summary>
         public virtual float friction { get; set; }
         public virtual float price { get; set; }
         public virtual float accuracyMod { get; set; }
@@ -131,7 +136,7 @@ namespace GA.Ground
             }
         }
 
-        public override float bounce
+        public override float restitution
         {
             get
             {
@@ -140,7 +145,7 @@ namespace GA.Ground
 
             set
             {
-                base.bounce = value;
+                base.restitution = value;
             }
         }
 
@@ -216,7 +221,7 @@ namespace GA.Ground
             }
         }
 
-        public override float bounce
+        public override float restitution
         {
             get
             {
@@ -225,7 +230,7 @@ namespace GA.Ground
 
             set
             {
-                base.bounce = value;
+                base.restitution = value;
             }
         }
 
@@ -305,7 +310,7 @@ namespace GA.Ground
         {
             get
             {
-                return 0.1f;
+                return 0.75f;
             }
 
             set
@@ -314,16 +319,16 @@ namespace GA.Ground
             }
         }
 
-        public override float bounce
+        public override float restitution
         {
             get
             {
-                return 0.65f;
+                return 0.35f;
             }
 
             set
             {
-                base.bounce = value;
+                base.restitution = value;
             }
         }
 
@@ -432,7 +437,7 @@ namespace GA.Ground
             }
         }
 
-        public override float bounce
+        public override float restitution
         {
             get
             {
@@ -441,7 +446,7 @@ namespace GA.Ground
 
             set
             {
-                base.bounce = value;
+                base.restitution = value;
             }
         }
 
