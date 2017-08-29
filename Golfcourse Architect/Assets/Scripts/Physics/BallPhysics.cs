@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GA.Pathfinding;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,8 +12,11 @@ namespace GA.Physics
         public List<RailPoint> Rail = new List<RailPoint>();
 
         public Vector3 testVelocity;
+        public Transform testTarget;
 
-        public void CalculateRailFromStats(Vector3 startingPosition, Vector3 startingVelocity, float spin, float sideSpin)
+        public float speed = 3;
+
+        public List<RailPoint> CalculateRailFromStats(Vector3 startingPosition, Vector3 startingVelocity, float spin, float sideSpin)
         {
             //raycast from normal velocity by ball size / 2
             //if hit, add point on hit posision and update velocity
@@ -56,8 +60,14 @@ namespace GA.Physics
 
                 rp.point += rp.velocity;
                 rail.Add(rp.Copy());
-                Debug.DrawRay(rp.point, rp.velocity, Color.white, 10f);
+
+                Debug.DrawRay(rp.point, rp.velocity, Color.white, speed);
+
+                if (rp.velocity.magnitude < 0.1f)
+                    break;
             }
+
+            return rail;
         }
 
         private Vector3 bounce(Vector3 velIn, Vector3 normal, float r, float f)
@@ -79,7 +89,7 @@ namespace GA.Physics
 
             Vector3 newPos = pos + (-direction.normalized * backup);
 
-            Debug.DrawRay(newPos, direction.normalized * distance, Color.yellow, 10f);
+            Debug.DrawRay(newPos, direction.normalized * distance, Color.blue, speed);
 
             if (UnityEngine.Physics.Raycast(newPos, direction.normalized, out hit, distance))
             {
@@ -140,9 +150,14 @@ namespace GA.Physics
 
             BallPhysics ball = target as BallPhysics;
 
-            if(GUILayout.Button("Calculate Rail"))
+            if(GUILayout.Button("Test Rail"))
             {
-                ball.CalculateRailFromStats(ball.transform.position, ball.testVelocity, 50, 50);
+                ball.GetComponent<BallPathFinder>().TestVel(ball.testTarget.transform.position);
+            }
+
+            if (GUILayout.Button("Find Path"))
+            {
+                ball.GetComponent<BallPathFinder>().StartFindPath(ball.transform.position, ball.testTarget.transform.position);
             }
         }
     }
