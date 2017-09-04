@@ -19,6 +19,14 @@ public class Pin : MonoBehaviour
         }
     }
 
+    public Vector2 FlatPosition
+    {
+        get
+        {
+            return new Vector2(transform.position.x, transform.position.z);
+        }
+    }
+
     private void PositionUpdated(Vector3 value)
     {
         transform.position = value;

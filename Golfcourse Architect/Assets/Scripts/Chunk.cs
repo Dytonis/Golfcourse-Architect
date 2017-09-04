@@ -501,7 +501,7 @@ public class Chunk : MonoBehaviour
 
     internal Vector2 globalXYToVertex(float globalX, float globalY)
     {
-        return new Vector2(Mathf.RoundToInt(globalX) % (Size.x), Mathf.RoundToInt(globalY) % (Size.y));
+        return new Vector2((int)((globalX) % (Size.x)), (int)((globalY) % (Size.y)));
     }
 
     private void checkinUniqueVert(int vert)

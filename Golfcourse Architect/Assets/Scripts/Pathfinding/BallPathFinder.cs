@@ -17,14 +17,11 @@ namespace GA.Pathfinding
         public float angle;
         public float vel;
 
+        public float accuracy;
+
         public int iterations;
 
         public float speed = 3;
-
-        public void StartFindPath(Vector3 start, Vector3 target)
-        {
-            StartCoroutine(FindPath(start, target));
-        }
 
         public void TestVel(Vector3 target)
         {
@@ -38,91 +35,171 @@ namespace GA.Pathfinding
             physics.CalculateRailFromStats(transform.position, velocity, 0, 0);
         }
 
-        private IEnumerator FindPath(Vector3 start, Vector3 target)
+        public BallPathBlock FindPathFlatTarget(Vector3 start, Vector2 target)
+        {
+            Vector3 target2 = Vector3.zero;
+
+            RaycastHit hit;
+            if (UnityEngine.Physics.Raycast(new Vector3(target.x, 100, target.y), Vector3.down, out hit, 200))
+            {
+                target2 = new Vector3(target.x, hit.point.y, target.y);
+            }
+
+            return FindPath(start, target2);
+        }
+
+        public void StartFindPathIE(Vector3 start, Vector3 target)
+        {
+            StartCoroutine(FindPathIE(start, target));
+        }
+
+        private IEnumerator FindPathIE(Vector3 start, Vector3 target)
         {
             float gap = -Vector3.Distance(start, new Vector3(target.x, start.y, target.z));
             float elevationGain = target.y - start.y;
-
+            float closestDistance = float.PositiveInfinity;
             Vector3 heading = new Vector3(target.x, start.y, target.z) - start;
             Vector3 dir = heading / heading.magnitude;
 
-            BallPathFinderDataBlock initial = getBlock(start, target, dir, 0.25f, maxVelocity, -30, 30);
-
-            float closest = float.PositiveInfinity;
-
-            BallPathFinderDataBlock last = initial;
+            BallPathBlock initial = getPathLine(maxVelocity, 0, start, target, dir);
             yield return new WaitForSeconds(speed);
 
-            float leftAngle = -30f;
-            float rightAngle = 30f;
-            float minVel = 0.25f;
+            BallPathBlock last = initial;
+
+            BallPathBlock closest;
+
             float maxVel = maxVelocity;
 
             for (int i = 0; i < iterations; i++)
             {
-                //ANGLE
-                if (last.TOP_LEFT < last.TOP_RIGHT)
+                Vector3 dirToLast = Math.Direction(start, last.lastPoint);
+
+                float angleDelta = Math.AngleDir(dir, dirToLast, Vector3.up);
+
+                Vector3 dirFromBallToTarget = Math.FlatDirection(last.lastPoint, target);
+                Vector3 dirFromBallToStart = Math.FlatDirection(last.lastPoint, start);
+                float angleToTarget = Vector3.Angle(dirFromBallToTarget, dirFromBallToStart);
+                float distanceFromStartToBall = Math.FlatDistance(start, last.lastPoint);
+
+                //last.angle += -angleDelta / 2;
+
+                float distance = Mathf.Cos(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.lastPoint, target);
+                float oppDistance = Mathf.Sin(Math.DegreesToRadians(angleToTarget)) * distance;
+
+                if(angleDelta > 0)
                 {
-                    //path is more left
-                    leftAngle = last.ANGLE_LEFT; //keep left where it is
-                    rightAngle = rightAngle - ((Math.AbsDifference(leftAngle, rightAngle) / 2)); //move right angle left by half the size
-
-                    Debug.Log(last.TOP_LEFT * transform.localScale.magnitude);
-                    Debug.DrawRay(new Vector3(target.x, 0, target.z), Vector3.up * 100, Color.red, speed);
-
-                    if (last.TOP_LEFT * transform.localScale.magnitude < 0.1f)
-                    {
-                        //path found
-                        yield break;
-                    }
+                    //right
+                    last.angle -= oppDistance;
                 }
                 else
                 {
-                    //path is more right
-                    rightAngle = last.ANGLE_RIGHT; //keep right where it is
-                    leftAngle = leftAngle + ((Math.AbsDifference(leftAngle, rightAngle) / 2)); //move left angle right by half the size
-
-                    Debug.Log(last.TOP_RIGHT * transform.localScale.magnitude);
-                    Debug.DrawRay(new Vector3(target.x, 0, target.z), Vector3.up * 100, Color.red, speed);
-
-                    if (last.TOP_RIGHT * transform.localScale.magnitude < 0.1f)
-                    {
-                        //path found
-                        yield break;
-                    }
+                    last.angle += oppDistance;
                 }
 
-                //POWER
-                if(last.TOP_LEFT < last.BOTTOM_LEFT)
+                if (gap > distanceFromStartToBall)
                 {
-                    //path is more top
-                    maxVel = last.VEL_MAX; //keep max where it is
-                    minVel = minVel + ((last.VEL_MAX - last.VEL_MIN) / 2); //increase minVel by half the size
-
-                    if (last.TOP_LEFT * transform.localScale.magnitude < 0.1f)
-                    {
-                        //path found
-                        yield break;
-                    }
+                    //ball is closer than target
+                    distance *= -1;
                 }
-                else
+
+                Debug.Log("Opp: " + oppDistance + ", Distance: " + distance);
+                //Debug.Log(distance);
+
+                last.speed += (0.01f * -distance);
+
+                last = getPathLine(last.speed, last.angle, start, target, dir);
+
+                Debug.DrawRay(last.lastPoint, dirFromBallToStart.normalized * distance, Color.yellow, speed);
+                Debug.DrawRay(last.lastPoint, Quaternion.AngleAxis(90, Vector3.up) * dirFromBallToTarget.normalized * oppDistance, Color.cyan, speed);
+
+                Debug.DrawLine(last.lastPoint, Vector3.up, Color.black, speed);
+
+                float d = Math.FlatDistance(last.lastPoint, target);
+
+                if (d < closestDistance)
                 {
-                    //path is more bottom
-                    minVel = last.VEL_MIN; //keep min where it is
-                    maxVel = maxVel - ((last.VEL_MAX - last.VEL_MIN) / 2); //decrease maxVel by half the size
-
-                    if (last.BOTTOM_LEFT * transform.localScale.magnitude < 0.1f)
-                    {
-                        //path found
-                        yield break;
-                    }
+                    closestDistance = d;
+                    closest = last;
                 }
-
-                last = getBlock(start, target, dir, minVel, maxVel, leftAngle, rightAngle);
                 yield return new WaitForSeconds(speed);
             }
+
+            physics.drawDebug = true;
+            physics.CalculateRailFromStats(start, last.velocity, 0, 0);
+            yield break;
         }
 
+        private BallPathBlock FindPath(Vector3 start, Vector3 target)
+        {
+            float gap = -Vector3.Distance(start, new Vector3(target.x, start.y, target.z));
+            float elevationGain = target.y - start.y;
+            float closestDistance = float.PositiveInfinity;
+            Vector3 heading = new Vector3(target.x, start.y, target.z) - start;
+            Vector3 dir = heading / heading.magnitude;
+
+            BallPathBlock initial = getPathLine(maxVelocity, 0, start, target, dir);
+
+            BallPathBlock last = initial;
+
+            BallPathBlock closest = new BallPathBlock();
+
+            for (int i = 0; i < iterations; i++)
+            {
+                Vector3 dirToLast = Math.Direction(start, last.lastPoint);
+
+                float angleDelta = Math.AngleDir(dir, dirToLast, Vector3.up);
+
+                Vector3 dirFromBallToTarget = Math.FlatDirection(last.lastPoint, target);
+                Vector3 dirFromBallToStart = Math.FlatDirection(last.lastPoint, start);
+                float angleToTarget = Vector3.Angle(dirFromBallToTarget, dirFromBallToStart);
+                float distanceFromStartToBall = Math.FlatDistance(start, last.lastPoint);
+
+                //last.angle += -angleDelta / 2;
+
+                float distance = Mathf.Cos(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.lastPoint, target);
+                float oppDistance = Mathf.Sin(Math.DegreesToRadians(angleToTarget)) * distance;
+
+                if (angleDelta > 0)
+                {
+                    //right
+                    last.angle -= oppDistance;
+                }
+                else
+                {
+                    last.angle += oppDistance;
+                }
+
+                if (gap > distanceFromStartToBall)
+                {
+                    //ball is closer than target
+                    distance *= -1;
+                }
+
+                Debug.Log("Opp: " + oppDistance + ", Distance: " + distance);
+                //Debug.Log(distance);
+
+                last.speed += (0.01f * -distance);
+
+                last = getPathLine(last.speed, last.angle, start, target, dir);
+
+                Debug.DrawRay(last.lastPoint, dirFromBallToStart.normalized * distance, Color.yellow, speed);
+                Debug.DrawRay(last.lastPoint, Quaternion.AngleAxis(90, Vector3.up) * dirFromBallToTarget.normalized * oppDistance, Color.cyan, speed);
+
+                Debug.DrawLine(last.lastPoint, target, Color.black, speed);
+
+                float d = Math.FlatDistance(last.lastPoint, target);
+
+                if (d < closestDistance)
+                {
+                    closestDistance = d;
+                    closest = last;
+                }
+            }
+
+            return closest;
+        }
+
+        [Obsolete]
         private BallPathFinderDataBlock getBlock(Vector3 start, Vector3 target, Vector3 dir, float minVel, float maxVel, float leftAngle, float rightAngle)
         {
             BallPathFinderDataBlock block = new BallPathFinderDataBlock();
@@ -130,6 +207,8 @@ namespace GA.Pathfinding
             block.ANGLE_RIGHT = rightAngle;
             block.VEL_MAX = maxVel;
             block.VEL_MIN = minVel;
+
+            List<Vector3> list = new List<Vector3>();
 
             //find region
             int i = 0;
@@ -143,8 +222,13 @@ namespace GA.Pathfinding
                     Vector3 axis = Quaternion.Euler(new Vector3(0, -90, 0)) * dir;
                     velocity = Quaternion.AngleAxis(launchAngle, axis) * velocity;
                     velocity = Quaternion.AngleAxis(a, Vector3.up) * velocity;
+                    block.velocity = velocity;
 
-                    float d = closestPoint(physics.CalculateRailFromStats(start, velocity, 0, 0).ToArray(), target);
+                    Vector3 close;
+
+                    float d = lastPointDistance(physics.CalculateRailFromStats(start, velocity, 0, 0).ToArray(), target, out close);
+
+                    list.Add(close);
 
                     switch (i)
                     {
@@ -164,6 +248,37 @@ namespace GA.Pathfinding
                 }
             }
 
+            Debug.DrawLine(list[0], list[1], Color.black, speed);
+            Debug.DrawLine(list[1], list[3], Color.black, speed);
+            Debug.DrawLine(list[2], list[3], Color.black, speed);
+            Debug.DrawLine(list[2], list[0], Color.black, speed);
+
+            return block;
+        }
+
+        BallPathBlock getPathLine(float speed, float angle, Vector3 start, Vector3 target, Vector3 dir)
+        {
+            BallPathBlock block = new BallPathBlock()
+            {
+                speed = speed,
+                angle = angle
+            };
+
+            float launchAngle = getAngleFromSpeed(speed);
+            Vector3 velocity = speed * dir;
+            Vector3 axis = Quaternion.Euler(new Vector3(0, -90, 0)) * dir;
+            velocity = Quaternion.AngleAxis(launchAngle, axis) * velocity;
+            velocity = Quaternion.AngleAxis(angle, Vector3.up) * velocity;
+            block.velocity = velocity;
+
+            Vector3 closestPoint;
+
+            List<RailPoint> rail = physics.CalculateRailFromStats(start, velocity, 0, 0);
+
+            float distance = lastPointDistance(rail.ToArray(), target, out closestPoint);
+            block.lastPoint = closestPoint;
+            block.rail = rail;
+
             return block;
         }
         private float closestPoint(RailPoint[] points, Vector3 target)
@@ -172,7 +287,10 @@ namespace GA.Pathfinding
 
             foreach(RailPoint p in points)
             {
-                if (p.velocity.magnitude > 0.35f)
+                if (p.velocity.magnitude > 0.15f)
+                    continue;
+
+                if (p.bouncing)
                     continue;
 
                 float d = Vector3.Distance(p.point, target);
@@ -181,6 +299,37 @@ namespace GA.Pathfinding
                     distance = d;
             }
 
+            return distance;
+        }
+        public float closestPoint(RailPoint[] points, Vector3 target, out Vector3 point)
+        {
+            float distance = float.PositiveInfinity;
+            Vector3 closest = Vector3.zero;
+
+            foreach (RailPoint p in points)
+            {
+                if (p.velocity.magnitude > 0.15f)
+                    continue;
+
+                if (p.bouncing)
+                    continue;
+
+                float d = Vector3.Distance(p.point, target);
+
+                if (d < distance)
+                {
+                    distance = d;
+                    closest = p.point;
+                }
+            }
+            point = closest;
+            return distance;
+        }
+
+        private float lastPointDistance(RailPoint[] points, Vector3 target, out Vector3 point)
+        {
+            float distance = Vector3.Distance(points.Last().point, target);
+            point = points.Last().point;
             return distance;
         }
 
@@ -201,5 +350,15 @@ namespace GA.Pathfinding
         public float ANGLE_RIGHT;
         public float VEL_MIN;
         public float VEL_MAX;
+        public Vector3 velocity;
+    }
+
+    public struct BallPathBlock
+    {
+        public float speed;
+        public Vector3 velocity;
+        public float angle;
+        public List<RailPoint> rail;
+        public Vector3 lastPoint;
     }
 }

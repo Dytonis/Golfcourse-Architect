@@ -24,6 +24,8 @@ namespace GA.Ground
         public virtual float shotWeight { get; set; }
         public virtual float walkWeight { get; set; }
         public virtual float shotRisk { get; set; }
+        public virtual float shootable { get; set; }
+        public virtual float shotFromRiskPenalty { get; set; }
         public virtual bool walkable { get; set; }
 
         public abstract void OnActivate();
@@ -97,6 +99,19 @@ namespace GA.Ground
             }
         }
 
+        public override float shotFromRiskPenalty
+        {
+            get
+            {
+                return 2;
+            }
+
+            set
+            {
+                base.shotFromRiskPenalty = value;
+            }
+        }
+
         public override float shotRisk
         {
             get
@@ -153,7 +168,7 @@ namespace GA.Ground
         {
             get
             {
-                return 2;
+                return 3;
             }
 
             set
@@ -192,6 +207,19 @@ namespace GA.Ground
                     (int)GroundSprites.FAIRWAY_STANDARD,
                     (int)GroundSprites.DARK_PLATE,
                 };
+            }
+        }
+
+        public override float shotFromRiskPenalty
+        {
+            get
+            {
+                return 0.4f;
+            }
+
+            set
+            {
+                base.shotFromRiskPenalty = value;
             }
         }
 
@@ -238,7 +266,7 @@ namespace GA.Ground
         {
             get
             {
-                return 0.5f;
+                return 0;
             }
 
             set
@@ -251,7 +279,7 @@ namespace GA.Ground
         {
             get
             {
-                return 0;
+                return 1f;
             }
 
             set
@@ -376,6 +404,22 @@ namespace GA.Ground
             throw new NotImplementedException();
         }
     }
+    public class Teebox : Fairway
+    {
+        public override float shotFromRiskPenalty
+        {
+            get
+            {
+                return 0;
+            }
+
+            set
+            {
+                base.shotFromRiskPenalty = value;
+            }
+        }
+    }
+
     public class Max_Bounds : GroundType
     {
         public override int[] spriteChildPath
@@ -408,6 +452,19 @@ namespace GA.Ground
             set
             {
                 base.walkable = value;
+            }
+        }
+
+        public override float shotFromRiskPenalty
+        {
+            get
+            {
+                return 3;
+            }
+
+            set
+            {
+                base.shotFromRiskPenalty = value;
             }
         }
 
@@ -504,5 +561,6 @@ namespace GA.Ground
         GREEN_STANDARD = 2,
         DARK_PLATE = 7,
         GRAVEL = 9,
+        TEEBOX = 0
     }
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace GA.Game.AI
 {
+    [System.Obsolete]
     public class AIStateHitShot : AIState
     {
         ShotPath path;

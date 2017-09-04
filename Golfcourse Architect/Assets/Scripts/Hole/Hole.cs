@@ -41,11 +41,15 @@ public class Hole : MonoBehaviour
         controller.HoleProperties.Title.text = Name;
     }
 
+    [System.Obsolete]
     public ShotPath Golfer_CalculateShotPosition(Golfer g, Vector2 fromPosition)
     {
         if (CompressedLine.ContainsKey(g.gamemode.getTeebox(g.round.TeeType, g.round.CurrentHole)))
         {
             List<Vector3> list = CompressedLine[g.gamemode.getTeebox(g.round.TeeType, g.round.CurrentHole)];
+
+            if (list.Count > 8)
+                list.RemoveRange(7, list.Count - 8);
 
             List<List<Vector3>> possiblePaths = new List<List<Vector3>>();
 
@@ -74,8 +78,8 @@ public class Hole : MonoBehaviour
             for (int i = 0; i < list.Count - 1; i++)
             {
                 reference.r += getRiskBetweenPoints(list[i], list[i + 1]); //get risk between the first list's current point and next
-                reference.yList.Add(Yard.FloatToYard(Vector2.Distance(list[i], list[i + 1])));
-                reference.y += reference.yList[i];
+                //reference.yList.Add(Yard.FloatToYard(Vector2.Distance(list[i], list[i + 1])));
+                //reference.y += reference.yList[i];
             }
             List<ShotPath> paths = new List<ShotPath>();
             //we have all the possible paths
@@ -83,13 +87,18 @@ public class Hole : MonoBehaviour
             {
                 ShotPath p = new ShotPath();
                 bool valid = true;
-
-                for(int i = 0; i < path.Count - 1; i++)
+                for (int i = 0; i < path.Count - 1; i++)
                 {
-                    int additionalShots = (int)(Yard.FloatToYard(Vector2.Distance(path[i], path[i + 1])) / g.Stats.DriverLength);
+                    if (Yard.FloatToYard(Vector2.Distance(path[i], path[i + 1])) > g.Stats.DriverLength)
+                    {
+                        valid = false;
+                        break;
+                    }
+
                     p.r += getRiskBetweenPoints(path[i], path[i + 1]); //get risk between the current point and the next
-                    p.y += Yard.FloatToYard(Vector2.Distance(path[i], path[i + 1])) - reference.yList[i]; //calculate difference in yardage between all points path and current path points
-                    p.shotCount += additionalShots;
+                    //p.y += (Yard.FloatToYard(Vector2.Distance(path[i], path[i + 1])) - reference.yList[i]); //calculate difference in yardage between all points path and current path points
+
+                    Debug.DrawRay(path[i], Vector3.up * 100, Color.cyan, 10f);
                 }
 
                 if (!valid) //if a shot is too far, ignore the path as it is impossible
@@ -102,18 +111,18 @@ public class Hole : MonoBehaviour
             }
 
             //calculate preferred path
-            //get the lowest shot count with the lowest p score thats under MSC
+            //get the path with the shortest distance with the lowst p score under MSC
 
-            ShotPath preferred = paths[0];
+            ShotPath preferred = getLowestPriceShot(paths);
 
             foreach (ShotPath p in paths)
             {
                 if (p.p > g.Personality.MaxShotCost)
                     continue;
 
-                if (p.shotCount <= preferred.shotCount)
+                if (Vector2.Distance(p.lastPoint, g.CurrentHole.currentPin.FlatPosition) <= Vector2.Distance(preferred.lastPoint, g.CurrentHole.currentPin.FlatPosition))
                 {
-                    if (p.p < preferred.p)
+                    if (p.p < preferred.p || Vector2.Distance(p.lastPoint, g.CurrentHole.currentPin.FlatPosition) < Vector2.Distance(preferred.lastPoint, g.CurrentHole.currentPin.FlatPosition))
                         preferred = p;
                 }
             }
@@ -126,18 +135,83 @@ public class Hole : MonoBehaviour
         }
     }
 
-    private float getRiskBetweenPoints(Vector2 a, Vector2 b)
+    public ShotPoint Golfer_CalculateNextShot(Golfer g, Vector2 fromPosition)
     {
-        Vector2 dir = (a - b).normalized;
+        if (CompressedLine.ContainsKey(g.gamemode.getTeebox(g.round.TeeType, g.round.CurrentHole)))
+        {
+            List<Vector3> listRaw = TargetLine[g.gamemode.getTeebox(g.round.TeeType, g.round.CurrentHole)];
+
+            List<Vector3> list = new List<Vector3>();
+
+            List<ShotPoint> paths = new List<ShotPoint>();
+
+            foreach(Vector3 v in listRaw)
+            {
+                list.Add(new Vector3(v.x + 0.5f, v.y, v.z + 0.5f));
+            }
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                ShotPoint p = new ShotPoint();
+
+                p.cost = getRiskBetweenPoints(list[0], list[i]);
+                p.point = new Vector2(list[i].x, list[i].z);
+                p.distanceToPin = Yard.FloatToYard(Vector2.Distance(p.point, g.CurrentHole.currentPin.FlatPosition));
+                p.distanceFromStart = Yard.FloatToYard(Vector2.Distance(p.point, fromPosition));
+
+                if(p.distanceFromStart <= g.Stats.DriverLength)
+                    paths.Add(p);
+            }
+
+            ShotPoint best = paths[0];
+
+            foreach (ShotPoint path in paths)
+            {
+                if (path.cost > g.Personality.MaxShotCost)
+                    continue;
+
+                if (path.distanceToPin < best.distanceToPin)
+                    best = path;
+            }
+
+            return best;
+        }
+
+        else return new ShotPoint();
+    }
+
+    [System.Obsolete]
+    private ShotPath getLowestPriceShot(List<ShotPath> paths)
+    {
+        float lowestPrice = float.PositiveInfinity;
+        ShotPath lowest = new ShotPath();
+
+        foreach (ShotPath p in paths)
+        {
+            if (p.p < lowestPrice)
+            {
+                lowestPrice = p.p;
+                lowest = p;
+            }
+        }
+
+        return lowest;
+    }
+
+    private float getRiskBetweenPoints(Vector2 start, Vector2 target)
+    {
+        Vector2 dir = (start - target).normalized;
         float r = 0;
 
-        for(int i = 0; i <= (int)Vector2.Distance(a, b); i++)
+        float shotRiskPenalty = family.GetChunkDataPointGroundTypeGlobally((int)start.x, (int)target.y).shotFromRiskPenalty;
+
+        for(int i = 0; i <= (int)Vector2.Distance(start, target); i++)
         {
-            Vector2 check = a + (dir * i);
+            Vector2 check = start + (dir * i);
 
             GA.Ground.GroundType type = family.GetChunkDataPointGroundTypeGlobally((int)check.x, (int)check.y);
 
-            r += type.shotRisk;
+            r += type.shotRisk * (shotRiskPenalty + 1);
         }
 
         return r;
@@ -209,7 +283,7 @@ public class Hole : MonoBehaviour
                         compress.Add(new Vector3(line[i + 1].x + 0.5f, line[i + 1].y, line[i + 1].z + 0.5f));
                     }
 
-                    if (Yard.FloatToYard(distance) >= 50) //put a shootable check here
+                    if (Yard.FloatToYard(distance) >= 20) //put a shootable check here
                     {
                         compress.Add(new Vector3(line[i + 1].x + 0.5f, line[i + 1].y, line[i + 1].z + 0.5f));
                         distance = 0;
@@ -466,12 +540,22 @@ public class Hole : MonoBehaviour
     }
 }
 
+[System.Obsolete]
 public struct ShotPath
 {
     public float y;
     public List<float> yList;
     public float r;
     public List<Vector2> points;
+
+    public Vector2 lastPoint
+    {
+        get
+        {
+            return points[points.Count - 1];
+        }
+    }
+
     public int shotCount;
     public float p
     {
@@ -480,4 +564,12 @@ public struct ShotPath
             return y + r;
         }
     }
+}
+
+public struct ShotPoint
+{
+    public float cost;
+    public Vector2 point;
+    public float distanceToPin;
+    public float distanceFromStart;
 }

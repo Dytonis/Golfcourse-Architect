@@ -183,7 +183,7 @@ public class ScreenClick : MonoBehaviour
                         if (Input.GetMouseButtonUp(0))
                         {
                             Family.ModifyChunkDataPointTileElevationGlobally((int)globalX, (int)globalY, lowest);
-                            Family.ModifyChunkDataPointTypeGlobally((int)globalX, (int)globalY, new GA.Ground.Fairway());
+                            Family.ModifyChunkDataPointTypeGlobally((int)globalX, (int)globalY, new GA.Ground.Teebox());
                             Tees newTees = Instantiate(teeObject, teeObject.transform.position, teeObject.transform.rotation);
                             newTees.FlatPosition = new Vector2(globalX, globalY);
                             newTees.CreateFencing();
