@@ -130,6 +130,9 @@ namespace GA.Physics
                     yield return new WaitForEndOfFrame();
                 }
             }
+
+            if (ball.Velocity.magnitude < 0.35f)
+                ball.Velocity = Vector3.zero;
         }
 
         private SlopePackage GetAccelTowards(Vector3 pos, Vector3 direction, float backup = 0.1f, float distance = 200, float gravity = 9.81f)

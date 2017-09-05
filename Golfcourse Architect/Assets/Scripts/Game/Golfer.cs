@@ -65,6 +65,22 @@ public partial class Golfer : Actor
         solver.ball = PlayerBall;
         physics = PlayerBall.GetComponent<BallPhysics>();
     }
+
+    private bool _swingBottom;
+    public void AE_SwingBottom()
+    {
+        _swingBottom = true;
+    }
+
+    public bool AEST_SwingBottom()
+    {
+        if (_swingBottom)
+        {
+            _swingBottom = false;
+            return true;
+        }
+        else return false;
+    }
     #endregion
 }
 

@@ -19,8 +19,9 @@ public partial class Golfer : Actor
         {
             _state = value;
             _state.golfer = this;
+            StartCoroutine(_state.EnumerationOnBecameActiveState());
             _state.OnBecameActiveState();
-            Debug.Log("AIState Switched to " + _state.GetType().ToString());
+            Debug.Log(name + "'s AIState Switched to " + _state.GetType().ToString());
         }
     }
     public Animator AnimationController;
@@ -61,6 +62,8 @@ public partial class Golfer : Actor
     private void AITick()
     {
         AnimationController.SetFloat("Velocity", Velocity.magnitude);
+
+        State.CheckForSubStateCompletion();
 
         if(State.Complete)
         {

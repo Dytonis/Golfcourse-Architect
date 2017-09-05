@@ -21,13 +21,46 @@ public class Actor : MonoBehaviour
     public float Acceleration;
     public float Brake;
 
+    public bool LessThanDistance(float distance, Vector2 point)
+    {
+        return Vector2.Distance(new Vector2(transform.position.x, transform.position.z), point) < distance;
+    }
+
+    public bool FinishedMoving
+    {
+        get
+        {
+            if (startedMoving && Moving == false)
+            {
+                startedMoving = false;
+                return true;
+            }
+            else return false;
+        }
+    }
+
+    private bool startedMoving;
+
     public bool Moving
     {
         get
         {
             if (Velocity.magnitude < 0.1f)
                 return false;
-            else return true;
+            else
+            {
+                startedMoving = true;
+                return true;
+            }
+        }
+    }
+
+    private bool _looking;
+    public bool Turning
+    {
+        get
+        {
+            return _looking;
         }
     }
 
@@ -152,6 +185,13 @@ public class Actor : MonoBehaviour
             LookCo = StartCoroutine(LookTowardsPoint(point));
     }
 
+    public IEnumerator StartToLookToPoint(Vector2 point)
+    {
+        IEnumerator ie = LookTowardsPoint(point);
+        StartCoroutine(ie);
+        return ie;
+    }
+
     public void StartToPathToPoint(Vector2 point, ChunkFamily family)
     {
         GA.Pathfinding.AStarGolferFinder golferFinder = new GA.Pathfinding.AStarGolferFinder(FlatPosition, point, family);
@@ -186,6 +226,7 @@ public class Actor : MonoBehaviour
 
         while (elapsedTime < time)
         {
+            _looking = true;
             elapsedTime += Time.deltaTime; // <- move elapsedTime increment here
             // Rotations
             transform.rotation = Quaternion.Slerp(startingRotation, Quaternion.LookRotation(D.normalized), (elapsedTime / time));
@@ -194,6 +235,8 @@ public class Actor : MonoBehaviour
 
             yield return new WaitForEndOfFrame();
         }
+
+        _looking = false;
     }
 
     private IEnumerator MoveToPoint(Vector2 point)
@@ -246,6 +289,8 @@ public class Actor : MonoBehaviour
 
     public void StopMovementCoroutines()
     {
+        startedMoving = false;
+
         if (MovementCo != null)
             StopCoroutine(MovementCo);
         if (LookCo != null)

@@ -8,21 +8,22 @@ namespace GA.Game.AI
 {
     public class AIStatePrepShot : AIState
     {
-        private ShotPoint nextShotPoint;
+        private BallPathBlock block;
 
         public override void OnBecameActiveState()
         {
-            nextShotPoint = golfer.CurrentHole.Golfer_CalculateNextShot(golfer, golfer.CurrentTees.FlatPosition);
-            BallPathBlock block = golfer.PlayerBall.GetComponent<BallPathFinder>().FindPathFlatTarget(golfer.PlayerBall.transform.position, nextShotPoint.point); //find the shot to the next point
+            ShotPoint nextShotPoint = golfer.CurrentHole.Golfer_CalculateNextShot(golfer, golfer.CurrentTees.FlatPosition);
+            block = golfer.PlayerBall.GetComponent<BallPathFinder>().FindPathFlatTarget(golfer.PlayerBall.transform.position, nextShotPoint.point); //find the shot to the next point
 
-            Vector3 vel = block.velocity;
-
-            golfer.physics.StartMoveBallOnRail(block.rail, golfer.PlayerBall);
-
-            golfer.StartToMoveToPoint(new Vector2(golfer.FlatPosition.x - 1, golfer.FlatPosition.y), false);
+            Complete = true;
         }
 
         public override void OnFinishedAction()
+        {
+            golfer.State = new AIStateHitTeeShot(block.rail);
+        }
+
+        public override void OnTickDuringActionIncomplete()
         {
             
         }

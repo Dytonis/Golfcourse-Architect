@@ -14,6 +14,9 @@ public class Tees : GA.Objects.TileObject
     public GameObject FencingPrefab;
     public GameObject Fencing;
 
+    public Transform RightHandedStandPosition;
+    public Transform BackStandPosition;
+
     public Vector3 Position
     {
         get

@@ -9,6 +9,13 @@ namespace GA.Objects
     {
         public ObjectID objectID;
         public Vector2 FlatPosition;
+        public Vector3 CenterPosition
+        {
+            get
+            {
+                return transform.position;
+            }
+        }
         public Chunk source;
 
         public static T GetObjectPrefabFromID<T>(ObjectID id) where T : TileObject

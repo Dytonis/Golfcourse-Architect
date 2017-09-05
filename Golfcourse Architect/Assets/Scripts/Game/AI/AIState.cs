@@ -9,6 +9,8 @@ namespace GA.Game.AI
 {
     public class AIState
     {
+        private AISubState subState;
+
         public Golfer golfer;
         private bool _complete;
         public bool Complete
@@ -27,9 +29,22 @@ namespace GA.Game.AI
 
         protected byte AnimationIndex = 0;
 
+        protected WaitForSubStateComplete StartSubState(AISubState state)
+        {
+            subState = null;
+            subState = state;
+            state.Start();
+            return new WaitForSubStateComplete(state);
+        }
+
         public virtual void OnBecameActiveState()
         {
 
+        }
+
+        public virtual IEnumerator EnumerationOnBecameActiveState()
+        {
+            yield break;
         }
 
         public virtual void OnTickDuringActionIncomplete()
@@ -46,6 +61,14 @@ namespace GA.Game.AI
         public virtual void OnFinishedAction()
         {
 
+        }
+
+        public virtual void CheckForSubStateCompletion()
+        {
+            if(subState != null)
+            {
+                subState.Complete = subState.GetComplete();
+            }
         }
     }
 }
