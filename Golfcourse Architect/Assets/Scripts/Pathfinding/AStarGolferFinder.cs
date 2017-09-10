@@ -88,6 +88,7 @@ namespace GA.Pathfinding
             result = new List<Vector2>();
             backupParents(last);
             result.Reverse();
+            result[result.Count - 1] = globalTarget;
             callback(result.ToArray());
             yield break;
         }

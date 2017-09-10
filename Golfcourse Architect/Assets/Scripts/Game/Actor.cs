@@ -23,6 +23,7 @@ public class Actor : MonoBehaviour
 
     public bool LessThanDistance(float distance, Vector2 point)
     {
+        Debug.DrawRay(new Vector3(point.x, 0, point.y), Vector3.up * 100, Color.magenta, 10f);
         return Vector2.Distance(new Vector2(transform.position.x, transform.position.z), point) < distance;
     }
 
@@ -45,7 +46,7 @@ public class Actor : MonoBehaviour
     {
         get
         {
-            if (Velocity.magnitude < 0.1f)
+            if (Velocity.magnitude < 0.01f)
                 return false;
             else
             {
@@ -183,6 +184,8 @@ public class Actor : MonoBehaviour
         MovementCo = StartCoroutine(MoveToPoint(point));
         if(look)
             LookCo = StartCoroutine(LookTowardsPoint(point));
+
+        startedMoving = true;
     }
 
     public IEnumerator StartToLookToPoint(Vector2 point)
@@ -289,8 +292,6 @@ public class Actor : MonoBehaviour
 
     public void StopMovementCoroutines()
     {
-        startedMoving = false;
-
         if (MovementCo != null)
             StopCoroutine(MovementCo);
         if (LookCo != null)

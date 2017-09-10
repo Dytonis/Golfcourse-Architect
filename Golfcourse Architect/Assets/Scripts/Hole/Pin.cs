@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GA;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,7 +24,7 @@ public class Pin : MonoBehaviour
     {
         get
         {
-            return new Vector2(transform.position.x, transform.position.z);
+            return transform.position.ToVector2();
         }
     }
 

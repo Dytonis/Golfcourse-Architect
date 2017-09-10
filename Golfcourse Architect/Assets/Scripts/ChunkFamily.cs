@@ -566,6 +566,15 @@ public class ChunkFamily : MonoBehaviour
         return c.data[(int)local.x, (int)local.y].type;
     }
 
+    public GA.Ground.GroundType GetChunkDataPointGroundTypeGlobally(Vector2 pos)
+    {
+        Chunk c = chunkFromGlobalTilePos((int)pos.x, (int)pos.y);
+
+        Vector2 local = LocalPositionFromChunkSize((int)pos.x, (int)pos.y);
+
+        return c.data[(int)local.x, (int)local.y].type;
+    }
+
     public System.Type GetChunkDataPointTypeofGroundTypeGlobally(int x, int y)
     {
         Chunk c = chunkFromGlobalTilePos(x, y);

@@ -338,7 +338,7 @@ namespace GA.Ground
         {
             get
             {
-                return 0.75f;
+                return 0.9f;
             }
 
             set

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using GA;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -147,14 +148,17 @@ public class Hole : MonoBehaviour
 
             foreach(Vector3 v in listRaw)
             {
-                list.Add(new Vector3(v.x + 0.5f, v.y, v.z + 0.5f));
+                if (v.Equals(listRaw.Last()))
+                    list.Add(g.CurrentHole.currentPin.transform.position);
+                else
+                    list.Add(new Vector3(v.x + 0.5f, v.y, v.z + 0.5f));
             }
 
             for (int i = 0; i < list.Count; i++)
             {
                 ShotPoint p = new ShotPoint();
 
-                p.cost = getRiskBetweenPoints(list[0], list[i]);
+                p.cost = getRiskBetweenPoints(list[0].ToVector2(), list[i].ToVector2());
                 p.point = new Vector2(list[i].x, list[i].z);
                 p.distanceToPin = Yard.FloatToYard(Vector2.Distance(p.point, g.CurrentHole.currentPin.FlatPosition));
                 p.distanceFromStart = Yard.FloatToYard(Vector2.Distance(p.point, fromPosition));
@@ -238,7 +242,7 @@ public class Hole : MonoBehaviour
     {
         foreach (Tees t in TeesList)
         {
-            GA.Pathfinding.AStarBallFinder finder = new GA.Pathfinding.AStarBallFinder(new Vector2(t.Position.x, t.Position.z), new Vector2(currentPin.PositionFine.x, currentPin.PositionFine.z), family);
+            GA.Pathfinding.AStarBallFinder finder = new GA.Pathfinding.AStarBallFinder(t.transform.position.ToVector2(), currentPin.transform.position.ToVector2(), family);
             //TargetLine.Add(t, finder.FindPath());
             StartCoroutine(finder.FindPath(FinishedCalculatingTargetLine, t));
         }

@@ -7,11 +7,11 @@ using System.Collections;
 
 namespace GA.Game.AI
 {
-    public class AIStateHitTeeShot : AIState
+    public class AIStateHitShot : AIState
     {
         List<RailPoint> points;
 
-        public AIStateHitTeeShot(List<RailPoint> rail)
+        public AIStateHitShot(List<RailPoint> rail)
         {
             points = rail;
         }
@@ -19,8 +19,13 @@ namespace GA.Game.AI
         public override IEnumerator EnumerationOnBecameActiveState()
         {
             //chance to move backwards and look (maybe scale that based on shot difficulty?)
-            
-            if(Random.Range(0f, 1f) < 0.5f)
+
+            Vector3 direction = -Math.Direction(golfer.PlayerBall.transform.position, points.Last().point).normalized;
+            Vector2 backupPoint = (golfer.PlayerBall.transform.position + (direction * 0.2f)).ToVector2();
+            Vector3 perpDirection = Vector3.Cross(Vector3.up, direction); //get the perpendicular direction
+            Vector2 rightPoint = (golfer.PlayerBall.transform.position + (perpDirection * 0.2f)).ToVector2();
+
+            if (Random.Range(0f, 1f) < 0.5f)
             {
                 //move backwards, look towards last rail point, play idle animation, move to shot position 
 
@@ -28,9 +33,8 @@ namespace GA.Game.AI
                 yield return StartSubState(new AISubState(() =>
                 {
                     Debug.Log(golfer);
-                    Vector2 point = new Vector2(golfer.CurrentTees.BackStandPosition.position.x, golfer.CurrentTees.BackStandPosition.position.z);
-                    golfer.StartToMoveToPoint(point);
-                }, () => { return golfer.LessThanDistance(0.2f, new Vector2(golfer.CurrentTees.BackStandPosition.position.x, golfer.CurrentTees.BackStandPosition.position.z)); }));
+                    golfer.StartToMoveToPoint(backupPoint);
+                }, () => { return golfer.LessThanDistance(0.2f, backupPoint); }));
                 //look towards last rail point, idle animation
                 yield return StartSubState(new AISubState(() =>
                 {
@@ -44,12 +48,12 @@ namespace GA.Game.AI
 
             yield return StartSubState(new AISubState(() =>
             {
-                golfer.StartToMoveToPoint(new Vector2(golfer.CurrentTees.RightHandedStandPosition.position.x, golfer.CurrentTees.RightHandedStandPosition.position.z));
-            }, () => { return golfer.LessThanDistance(0.1f, new Vector2(golfer.CurrentTees.RightHandedStandPosition.position.x, golfer.CurrentTees.RightHandedStandPosition.position.z)); }));
+                golfer.StartToMoveToPoint(rightPoint);
+            }, () => { return golfer.LessThanDistance(0.1f, rightPoint); }));
 
             yield return StartSubState(new AISubState(() =>
             {
-                golfer.StartToLookToPoint(golfer.CurrentTees.CenterPosition);
+                golfer.StartToLookToPoint(golfer.PlayerBall.transform.position.ToVector2());
                 golfer.AnimationController.SetTrigger("DefaultToReady");
             }, () => { return golfer.Turning == false; }));
 

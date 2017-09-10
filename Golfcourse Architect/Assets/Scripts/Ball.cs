@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using GA;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ public class Ball : MonoBehaviour
     {
         get
         {
-            return new Vector2(transform.position.x, transform.position.z);
+            return transform.position.ToVector2();
         }
     }
 }

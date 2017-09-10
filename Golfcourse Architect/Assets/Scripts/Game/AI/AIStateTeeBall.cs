@@ -38,7 +38,7 @@ namespace GA.Game.AI
 
         public override void OnFinishedAction()
         {
-            golfer.State = new AI.AIStatePrepShot();
+            golfer.State = new AI.AIStatePrepShot(golfer.PlayerBall.FlatPosition);
         }
     }
 }

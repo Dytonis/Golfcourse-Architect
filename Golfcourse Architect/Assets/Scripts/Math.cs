@@ -144,5 +144,10 @@ namespace GA
         {
             return r * 3.14f / 180f;
         }
+
+        public static float RadiansToDegrees(float r)
+        {
+            return r * 180f / 3.14f;
+        }
     }
 }

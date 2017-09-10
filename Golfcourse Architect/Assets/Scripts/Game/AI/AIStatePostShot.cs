@@ -30,8 +30,7 @@ namespace GA.Game.AI
         {
             Debug.Log("LOG");
 
-            //AIStateWaitingForRound wait = new AIStateWaitingForRound(golfer.clubhouse.InitialMoveSpot.transform.position);
-            //golfer.State = wait;
+            golfer.State = new AIStatePrepShot(golfer.PlayerBall.FlatPosition); 
         }
     }
 }
