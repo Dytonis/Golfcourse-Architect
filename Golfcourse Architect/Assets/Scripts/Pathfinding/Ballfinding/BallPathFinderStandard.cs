@@ -58,7 +58,7 @@ namespace GA.Pathfinding.Ballfinding
                 //last.angle += -angleDelta / 2;
 
                 float distance = Mathf.Cos(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.lastPoint, target);
-                float oppDistance = Mathf.Sin(Math.DegreesToRadians(angleToTarget)) * distance;
+                float oppDistance = Mathf.Sin(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.lastPoint, target);
 
                 if (angleDelta > 0)
                 {
@@ -130,7 +130,7 @@ namespace GA.Pathfinding.Ballfinding
                 //last.angle += -angleDelta / 2;
 
                 float distance = Mathf.Cos(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.lastPoint, target);
-                float oppDistance = Mathf.Sin(Math.DegreesToRadians(angleToTarget)) * distance;
+                float oppDistance = Mathf.Sin(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.lastPoint, target);
 
                 if (angleDelta > 0)
                 {

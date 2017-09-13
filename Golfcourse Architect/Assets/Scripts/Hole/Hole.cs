@@ -158,7 +158,7 @@ public class Hole : MonoBehaviour
             {
                 ShotPoint p = new ShotPoint();
 
-                p.cost = getRiskBetweenPoints(list[0].ToVector2(), list[i].ToVector2());
+                p.cost = getRiskBetweenPoints(g.PlayerBall.FlatPosition, list[i].ToVector2());
                 p.point = new Vector2(list[i].x, list[i].z);
                 p.distanceToPin = Yard.FloatToYard(Vector2.Distance(p.point, g.CurrentHole.currentPin.FlatPosition));
                 p.distanceFromStart = Yard.FloatToYard(Vector2.Distance(p.point, fromPosition));

@@ -28,7 +28,7 @@ namespace GA.Physics
                 rp.velocity = new Vector3(rp.velocity.x, rp.velocity.y - 0.0381f, rp.velocity.z); //gravity
                 rp.velocity *= 1 - (0.05f * rp.velocity.magnitude); //drag
 
-                SlopePackage package = GetAccelTowards(rp.point, rp.velocity.normalized, 0.25f, rp.velocity.magnitude + 0.25f);
+                SlopePackage package = GetAccelTowards(rp.point, rp.velocity.normalized, rp.velocity.magnitude / 2, rp.velocity.magnitude);
 
                 if (package.detected)
                 {

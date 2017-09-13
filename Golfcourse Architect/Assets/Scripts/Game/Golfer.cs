@@ -62,7 +62,6 @@ public partial class Golfer : Actor
 
         GameObject tee = Instantiate(TeePrefab, teebox.transform.position, teebox.transform.rotation);
         PlayerBall = Instantiate(BallPrefab, new Vector3(teebox.transform.position.x, teebox.transform.position.y + 0.06f, teebox.transform.position.z), teebox.transform.rotation) as Ball;
-        solver.ball = PlayerBall;
         ballMotion = PlayerBall.GetComponent<RailMotion>();
     }
 

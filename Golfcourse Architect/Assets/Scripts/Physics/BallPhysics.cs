@@ -35,6 +35,11 @@ namespace GA.Physics
                 h = true;
                 c = hit.collider.GetComponent<Chunk>();
             }
+
+            Debug.DrawRay(newPos, direction.normalized * distance, Color.red, 1f);
+            Debug.DrawRay(newPos, Vector3.up * 0.15f, Color.red, 1f);
+            Debug.DrawRay(pos, Vector3.up * 0.15f, Color.yellow, 1f);
+
             float angle = Vector3.Angle(normalUnder, Vector3.up);
 
             float sinOfAngle = Mathf.Sin((angle * Mathf.PI) / 180);
