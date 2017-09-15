@@ -34,6 +34,7 @@ namespace GA.Physics
                 normalUnder = hit.normal;
                 h = true;
                 c = hit.collider.GetComponent<Chunk>();
+                Debug.DrawRay(hit.point, Vector3.up * 0.3f, Color.magenta, 1f);
             }
 
             Debug.DrawRay(newPos, direction.normalized * distance, Color.red, 1f);

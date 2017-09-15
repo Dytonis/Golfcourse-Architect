@@ -28,33 +28,18 @@ namespace GA.Physics
                 rp.velocity = new Vector3(rp.velocity.x, rp.velocity.y - 0.0381f, rp.velocity.z); //gravity
                 rp.velocity *= 1 - (0.05f * rp.velocity.magnitude); //drag
 
-                SlopePackage package = GetAccelTowards(rp.point, rp.velocity.normalized, rp.velocity.magnitude / 2, rp.velocity.magnitude);
+                SlopePackage package = GetAccelTowards(rp.point, rp.velocity.normalized, 0.15f, rp.velocity.magnitude + 0.3f);
 
                 if (package.detected)
                 {
                     //detected ground
 
-                    if (rp.velocity.y >= -0.2f)
-                    {
-                        //dont bounce, roll
-                        rp.velocity = new Vector3(rp.velocity.x, 0, rp.velocity.z); //remove vertical speed
-                        rp.velocity += package.dirNormalized * (package.magnitude / 300); //accel gained from slope
-                        rp.velocity *= package.groundType.friction; //friction
-                        rp.bouncing = false;
-                    }
-                    else
-                    {
-                        rp.velocity = Bounce(rp.velocity, package.normal, package.groundType.restitution, package.groundType.friction); //calculate bounce                  
-                        rp.bouncing = true;
-                    }
+                    rp.point = package.hit.point;
+                    rail.Add(rp.Copy()); //add a point where it touched the ground
 
-                    rp.point = package.hit.point; //set the position to where it hit the ground
+                    rp.velocity = Bounce(rp.velocity, package.normal, package.groundType.restitution, package.groundType.friction); //calculate bounce                              
+
                     rp.grounded = true;
-
-                    RailPoint groundPoint = rp.Copy();
-                    groundPoint.velocity = oldVelocity;
-
-                    rail.Add(groundPoint); //add a point where it touched the ground
                 }
                 else
                 {
@@ -62,7 +47,6 @@ namespace GA.Physics
                 }
                 Debug.DrawRay(rp.point, rp.velocity, Color.black, 1f);
                 RailPoint point = rp.Copy();
-                point.velocity = oldVelocity;
 
                 if (rp.velocity.magnitude < 0.03f && rp.grounded)
                 {
@@ -71,9 +55,9 @@ namespace GA.Physics
                     break;
                 }
 
-                rail.Add(point); //add a point
-
                 rp.point += rp.velocity;
+
+                rail.Add(point); //add a point
             }
 
             return rail.ToArray();
