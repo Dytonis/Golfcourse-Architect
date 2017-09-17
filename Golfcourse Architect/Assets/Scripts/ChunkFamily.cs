@@ -16,11 +16,10 @@ public class ChunkFamily : MonoBehaviour
     public Chunk ChunkPrefab;
     public GameObject ChunkEdgePrefab;
     public StandardGamemode Gamemode;
+    public Hole CurrentHoleCreating;
     GameObject edgeTreeParent;
 
     public bool CreatingHole = false;
-    public Hole CurrentHoleCreating;
-    public List<Hole> HoleList = new List<Hole>();
 
     public int InitState = 0;
     public bool Initialized = false;

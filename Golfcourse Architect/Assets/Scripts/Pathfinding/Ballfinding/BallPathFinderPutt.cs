@@ -157,7 +157,7 @@ namespace GA.Pathfinding.Ballfinding
             yield break;
         }
 
-        private BallPathBlock FindPath_Putt(Vector3 start, Vector3 target)
+        public BallPathBlock FindPath_Putt(Vector3 start, Vector3 target)
         {
             float gap = -Vector3.Distance(start, new Vector3(target.x, start.y, target.z));
             float elevationGain = target.y - start.y;
@@ -213,7 +213,7 @@ namespace GA.Pathfinding.Ballfinding
                 Debug.DrawRay(last.lastPoint + (dirFromBallToStart.normalized * distance), (Quaternion.AngleAxis(90, Vector3.up) * (dirFromBallToStart.normalized * -oppDistance)), Color.cyan, speed);
                 Debug.DrawRay(last.lastPoint, Vector3.up, Color.white, speed);
 
-                float d = Math.FlatDistance(last.lastPoint, target);
+                float d = Vector3.Distance(last.lastPoint, new Vector3(target.x, target.y - 0.1f, target.z));
 
                 if (d < closestDistance)
                 {

@@ -7,6 +7,7 @@ public class ScreenClick : MonoBehaviour
 {
     public ClickType ClickAction;
     public ChunkFamily Family;
+    public StandardGamemode Gamemode;
     public UIController UIController;
 
     public Tees teesPrefab;
@@ -138,7 +139,7 @@ public class ScreenClick : MonoBehaviour
                 if (Family.CurrentHoleCreating == null)
                 {
                     Family.CurrentHoleCreating = Instantiate(holePrefab);
-                    Family.CurrentHoleCreating.Init(Family, UIController);
+                    Family.CurrentHoleCreating.Init(Gamemode, Family, UIController);
                     Family.CurrentHoleCreating.OnCreation();
                 }
 
@@ -209,7 +210,7 @@ public class ScreenClick : MonoBehaviour
                 if (Family.CurrentHoleCreating == null)
                 {
                     Family.CurrentHoleCreating = Instantiate(holePrefab);
-                    Family.CurrentHoleCreating.Init(Family, UIController);
+                    Family.CurrentHoleCreating.Init(Gamemode, Family, UIController);
                     Family.CurrentHoleCreating.OnCreation();
                 }
 

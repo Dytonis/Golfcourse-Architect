@@ -41,21 +41,39 @@ namespace GA.Physics
                 if (drawDebug)
                     Debug.Log("Velocity: " + p.velocity + " [" + p.velocity.magnitude + "]");
 
-                while (Vector3.Distance(ball.transform.position, p.point) > 0.1f)
+                RailPoint newPoint = p.Copy();
+                if(newPoint.clamped)
                 {
-                    Vector3 direction = Math.Direction(ball.transform.position, p.point);
+                    newPoint.point = clampToGround(newPoint);
+                }
 
-                    ball.Velocity = direction.normalized * p.velocity.magnitude * (TimeScale * 10);
+                while (Vector3.Dot(newPoint.velocity.normalized, Math.Direction(transform.position, newPoint.point)) > 0)
+                {
+                    Vector3 direction = Math.Direction(ball.transform.position, newPoint.point);
+
+                    ball.Velocity = direction.normalized * newPoint.velocity.magnitude * (TimeScale * 10);
                     ball.transform.position += ball.Velocity * Time.deltaTime;
                     yield return new WaitForEndOfFrame();
                 }
 
-                if (p.frozen)
+                if (newPoint.frozen)
                 {
                     ball.Velocity = Vector3.zero;
                     yield break;
                 }
             }
+        }
+
+        private Vector3 clampToGround(RailPoint p)
+        {
+            RaycastHit hit;
+
+            if(UnityEngine.Physics.Raycast(p.point, Vector3.down, out hit, 0.3f, LayerMask.GetMask("Terrain")))
+            {
+                return hit.point;
+            }
+
+            return p.point;
         }
     }
 
@@ -66,7 +84,7 @@ namespace GA.Physics
         public Vector3 velocity;
         public bool frozen;
         public bool grounded;
-        public bool bouncing;
+        public bool clamped;
 
         public RailPoint Copy()
         {
@@ -75,7 +93,7 @@ namespace GA.Physics
                 point = this.point,
                 velocity = this.velocity,
                 grounded = this.grounded,
-                bouncing = this.bouncing,
+                clamped = this.clamped,
                 frozen = this.frozen
             };
         }
@@ -98,6 +116,11 @@ namespace GA.Physics
             if (GUILayout.Button("Find Putt"))
             {
                 ball.GetComponent<BallPathFinder>().StartFindPathIE_Putt(ball.transform.position, ball.testTarget.transform.position);
+            }
+            if (GUILayout.Button("Find Putt then Move"))
+            {
+                BallPathBlock block = ball.GetComponent<BallPathFinder>().FindPath_Putt(ball.transform.position, ball.testTarget.transform.position);
+                ball.StartMoveBallOnRail(block.rail.ToList(), ball.GetComponent<Ball>());
             }
         }
     }

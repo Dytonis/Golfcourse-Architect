@@ -21,44 +21,96 @@ namespace GA.Physics
                 velocity = startingVelocity
             };
 
+            bool confinedToHole = false;
+
             for (int i = 0; i < 250; i++)
             {
-                Vector3 oldVelocity = rp.velocity;
+                SlopePackage package = GetAccelTowards(rp.point, rp.velocity.normalized, 0f, rp.velocity.magnitude);
+                SlopePackage confinedPackage = GetAccelTowardsHoleConfined(rp.point, rp.velocity.normalized, 0f, rp.velocity.magnitude);
 
-                rp.velocity = new Vector3(rp.velocity.x, rp.velocity.y - 0.0381f, rp.velocity.z); //gravity
-                rp.velocity *= 1 - (0.05f * rp.velocity.magnitude); //drag
-
-                SlopePackage package = GetAccelTowards(rp.point, rp.velocity.normalized, 0.15f, rp.velocity.magnitude + 0.3f);
-
-                if (package.detected)
+                if (confinedToHole == false)
                 {
-                    //detected ground
+                    if (package.detected)
+                    {
+                        //detected ground
 
-                    rp.point = package.hit.point;
-                    rail.Add(rp.Copy()); //add a point where it touched the ground
+                        if (gamemode.PositionsForAllCurrentHoles.Any(x => Vector3.Distance(rp.point, x) < 0.125f))
+                        {
+                            if (rp.velocity.ToFlatVector3().magnitude < 0.08f)
+                            {
+                                confinedToHole = true;
+                            }
+                            else if (rp.velocity.ToFlatVector3().magnitude > 0.08f)
+                            {
+                                float vertical = Math.InverseNormalizeRange(rp.velocity.ToFlatVector3().magnitude, 0.08f, 1f, 0.02f, 0.1f);
+                                rp.velocity /= 2;
 
-                    rp.velocity = Bounce(rp.velocity, package.normal, package.groundType.restitution, package.groundType.friction); //calculate bounce                              
+                                rp.velocity.Set(rp.velocity.x, vertical, rp.velocity.z);
+                            }
+                        }
 
-                    rp.grounded = true;
+                        rp.grounded = true;
+                        rp.point = package.hit.point;
+                        rail.Add(rp.Copy()); //add a point where it touched the ground
+                        rp.velocity = Bounce(rp.velocity, package.normal, package.groundType.restitution, package.groundType.friction); //calculate bounce                              
+
+                        if (rp.velocity.y < 0.1f)
+                            rp.clamped = true;
+                    }
+                    else
+                    {
+                        rp.grounded = false;
+
+                        rp.point += rp.velocity;
+
+                        rp.velocity = new Vector3(rp.velocity.x, rp.velocity.y - 0.0381f, rp.velocity.z); //gravity
+                        rp.velocity *= 1 - (0.05f * rp.velocity.magnitude); //drag
+
+                        if (rp.velocity.y > 0.1f)
+                            rp.clamped = false;
+
+                        rail.Add(rp.Copy());
+                    }
                 }
                 else
                 {
-                    rp.grounded = false;
-                }
-                Debug.DrawRay(rp.point, rp.velocity, Color.black, 1f);
-                RailPoint point = rp.Copy();
+                    if (confinedPackage.detected)
+                    {
+                        //detected cup
 
-                if (rp.velocity.magnitude < 0.03f && rp.grounded)
-                {
-                    rp.frozen = true;
-                    rail.Add(rp.Copy());
+                        rp.grounded = true;
+                        rp.point = confinedPackage.hit.point;
+                        rail.Add(rp.Copy()); //add a point where it touched the ground
+                        rp.velocity = Bounce(rp.velocity, confinedPackage.normal, 0.35f, 0.85f); //calculate bounce                              
+
+                        if (rp.velocity.y < 0.1f)
+                            rp.clamped = true;
+                    }
+                    else
+                    {
+                        rp.grounded = false;
+
+                        rp.point += rp.velocity;
+
+                        rp.velocity = new Vector3(rp.velocity.x, rp.velocity.y - 0.0381f, rp.velocity.z); //gravity
+                        rp.velocity *= 1 - (0.05f * rp.velocity.magnitude); //drag
+
+                        if (rp.velocity.y > 0.1f)
+                            rp.clamped = false;
+
+                        rail.Add(rp.Copy());
+                    }
+                }
+
+
+                if (rp.grounded && rp.velocity.magnitude < 0.05f)
                     break;
-                }
-
-                rp.point += rp.velocity;
-
-                rail.Add(point); //add a point
             }
+
+            RailPoint last = rp.Copy();
+            last.frozen = true;
+
+            rail[rail.Count - 1] = last;
 
             return rail.ToArray();
         }

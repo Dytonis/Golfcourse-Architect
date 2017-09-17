@@ -17,12 +17,28 @@ public class StandardGamemode : MonoBehaviour
     public Golfer GolferPrefab;
 
     public List<Golfer> Golfers = new List<Golfer>();
+    public List<Hole> HoleList = new List<Hole>();
     public int GolferCap = 10;
     public int CooldownGolferSpawn = 60;
     public float GolferSpawnChance = 0.01f;
 
     public bool Started = false;
     
+    public Vector3[] PositionsForAllCurrentHoles
+    {
+        get
+        {
+            List<Vector3> list = new List<Vector3>();
+
+            foreach(Hole h in HoleList)
+            {
+                list.Add(h.currentPin.transform.position);
+            }
+
+            return list.ToArray();
+        }
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -31,28 +47,28 @@ public class StandardGamemode : MonoBehaviour
     /// <returns></returns>
     public Tees getTeebox(TeeTypes type, int hole)
     {
-        if (family.HoleList.Count >= hole - 1)
+        if (HoleList.Count >= hole - 1)
         {
             Dictionary<int, int> types = new Dictionary<int, int>();
 
             int index = 0;
-            foreach(Tees t in family.HoleList[hole - 1].TeesList)
+            foreach(Tees t in HoleList[hole - 1].TeesList)
             {
                 types.Add((int)t.TeeType, index);
                 index++;
             }
 
             if ((int)type == 0)
-                return family.HoleList[hole - 1].TeesList[0];
+                return HoleList[hole - 1].TeesList[0];
 
             if (types.ContainsKey((int)type))
-                return family.HoleList[hole - 1].TeesList[types[(int)type]];
+                return HoleList[hole - 1].TeesList[types[(int)type]];
             else
             {
                 for(int i = 1; i < 8; i++)
                 {
                     if (types.ContainsKey((int)type - i))
-                        return family.HoleList[hole - 1].TeesList[types[(int)type - i]];
+                        return HoleList[hole - 1].TeesList[types[(int)type - i]];
                 }
             }
         }
@@ -85,7 +101,7 @@ public class StandardGamemode : MonoBehaviour
 
         TimeOfDayString = GetTimeOfDayString();
 
-        if(family.HoleList.Count > 0)
+        if(HoleList.Count > 0)
         {
             SpawnGolfersWhenAble();
         }

@@ -16,6 +16,7 @@ public class Hole : MonoBehaviour
     public Tees lineTeeObject;
     public Pin pinLineObject;
 
+    public StandardGamemode gamemode;
     public ChunkFamily family;
     public UIController controller;
     public bool ConstructingCurrently;
@@ -32,11 +33,12 @@ public class Hole : MonoBehaviour
     public bool Valid = false;
     public bool Open = false;
 
-    public void Init(ChunkFamily fam, UIController con)
+    public void Init(StandardGamemode game, ChunkFamily fam, UIController con)
     {
         family = fam;
+        gamemode = game;
         controller = con;
-        Name = "Hole #" + (fam.HoleList.Count + 1).ToString();
+        Name = "Hole #" + (gamemode.HoleList.Count + 1).ToString();
         controller.HoleProperties.Yards.text = " - ";
         controller.HoleProperties.TopTitle.text = Name + " Under Construction";
         controller.HoleProperties.Title.text = Name;
@@ -496,7 +498,7 @@ public class Hole : MonoBehaviour
 
     public void OnOpen()
     {
-        family.HoleList.Add(this);
+        gamemode.HoleList.Add(this);
         Open = true;
         ConstructingCurrently = false;
         OnStopConstruction();

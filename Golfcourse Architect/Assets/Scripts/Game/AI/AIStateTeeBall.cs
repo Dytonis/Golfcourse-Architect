@@ -11,9 +11,9 @@ namespace GA.Game.AI
 
         public override void OnBecameActiveState()
         {
-            if (golfer.family.HoleList.Count >= golfer.round.CurrentHole - 1)
+            if (golfer.gamemode.HoleList.Count >= golfer.round.CurrentHole - 1)
             {
-                Hole goToHole = golfer.family.HoleList[golfer.round.CurrentHole - 1];
+                Hole goToHole = golfer.gamemode.HoleList[golfer.round.CurrentHole - 1];
 
                 if (goToHole.Open)
                 {

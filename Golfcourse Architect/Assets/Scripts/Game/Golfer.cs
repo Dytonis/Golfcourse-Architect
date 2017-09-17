@@ -31,9 +31,9 @@ public partial class Golfer : Actor
         {
             if (family != null)
             {
-                if (family.HoleList.Count >= round.CurrentHole - 1)
+                if (gamemode.HoleList.Count >= round.CurrentHole - 1)
                 {
-                    return family.HoleList[round.CurrentHole - 1];
+                    return gamemode.HoleList[round.CurrentHole - 1];
                 }
             }
             return null;
