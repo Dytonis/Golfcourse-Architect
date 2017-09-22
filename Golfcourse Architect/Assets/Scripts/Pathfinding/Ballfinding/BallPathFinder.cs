@@ -68,6 +68,20 @@ namespace GA.Pathfinding.Ballfinding
         public Vector3 velocity;
         public float angle;
         public RailPoint[] rail;
-        public Vector3 lastPoint;
+        public Vector3 closestPoint;
+        public RailPoint lastPoint
+        {
+            get
+            {
+                return rail.Last();
+            }
+        }
+        public bool isEndingInHole
+        {
+            get
+            {
+                return rail.Last().inHole;
+            }
+        }
     }
 }

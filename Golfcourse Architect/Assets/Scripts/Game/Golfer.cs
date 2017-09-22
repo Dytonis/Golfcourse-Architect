@@ -31,12 +31,28 @@ public partial class Golfer : Actor
         {
             if (family != null)
             {
-                if (gamemode.HoleList.Count >= round.CurrentHole - 1)
+                if (gamemode.HoleList.Count >= round.CurrentHole)
                 {
                     return gamemode.HoleList[round.CurrentHole - 1];
                 }
             }
             return null;
+        }
+    }
+
+    public bool IsNextHole
+    {
+        get
+        {
+            if(family != null)
+            {
+                if(gamemode.HoleList.Count >= round.CurrentHole + 1)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 
@@ -53,21 +69,40 @@ public partial class Golfer : Actor
         round = new Round();
     }
 
-    #region ANIMATION_EVENTS
-    public void AE_PlaceTee()
+    public void SpawnBall(Vector3 position, Quaternion rot, bool tee = true)
     {
-        Debug.Log("AnimationEvent: AE_PlaceTee");
-
-        Tees teebox = family.Gamemode.getTeebox(round.TeeType, round.CurrentHole);
-
-        GameObject tee = Instantiate(TeePrefab, teebox.transform.position, teebox.transform.rotation);
-        PlayerBall = Instantiate(BallPrefab, new Vector3(teebox.transform.position.x, teebox.transform.position.y + 0.06f, teebox.transform.position.z), teebox.transform.rotation) as Ball;
+        PlayerBall = Instantiate<Ball>(BallPrefab, position, rot) as Ball;
         ballMotion = PlayerBall.GetComponent<RailMotion>();
+        if(tee)
+        {
+            Instantiate(TeePrefab, position, rot);
+        }
+    }
+
+    #region ANIMATION_EVENTS
+    private bool _reachDown;
+    public void AE_ReachDown()
+    {
+        Debug.Log("AnimationEvent: AE_ReachDown");
+
+        _reachDown = true;
+    }
+
+    public bool AEST_ReachDown()
+    {
+        if (_reachDown)
+        {
+            _reachDown = false;
+            return true;
+        }
+        else return false;
     }
 
     private bool _swingBottom;
     public void AE_SwingBottom()
     {
+        Debug.Log("AnimationEvent: AE_SwingBottom");
+
         _swingBottom = true;
     }
 

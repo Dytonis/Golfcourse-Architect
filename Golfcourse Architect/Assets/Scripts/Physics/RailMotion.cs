@@ -80,13 +80,14 @@ namespace GA.Physics
     [System.Serializable]
     public struct RailPoint
     {
-        public Vector3 point;
-        public Vector3 velocity;
-        public bool frozen;
-        public bool grounded;
-        public bool clamped;
+        internal Vector3 point;
+        internal Vector3 velocity;
+        internal bool frozen;
+        internal bool grounded;
+        internal bool clamped;
+        internal bool inHole;
 
-        public RailPoint Copy()
+        internal RailPoint Copy()
         {
             return new RailPoint()
             {
@@ -94,7 +95,8 @@ namespace GA.Physics
                 velocity = this.velocity,
                 grounded = this.grounded,
                 clamped = this.clamped,
-                frozen = this.frozen
+                frozen = this.frozen,
+                inHole = this.inHole
             };
         }
     }

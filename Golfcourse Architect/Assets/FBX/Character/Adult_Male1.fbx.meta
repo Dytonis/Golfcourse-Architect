@@ -451,7 +451,7 @@ ModelImporter:
       curves: []
       events:
       - time: 0.5016722
-        functionName: AE_PlaceTee
+        functionName: AE_ReachDown
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0

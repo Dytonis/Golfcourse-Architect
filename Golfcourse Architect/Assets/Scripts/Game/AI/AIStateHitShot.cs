@@ -4,16 +4,19 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using System.Collections;
+using GA.Pathfinding.Ballfinding;
 
 namespace GA.Game.AI
 {
     public class AIStateHitShot : AIState
     {
+        BallPathBlock block;
         List<RailPoint> points;
 
-        public AIStateHitShot(List<RailPoint> rail)
+        public AIStateHitShot(BallPathBlock rail)
         {
-            points = rail;
+            block = rail;
+            points = block.rail.ToList();
         }
 
         public override IEnumerator EnumerationOnBecameActiveState()
@@ -79,6 +82,7 @@ namespace GA.Game.AI
             }, () => { return golfer.Turning == false; }));
 
             Complete = true;
+            yield break;
         }
 
         public override void OnTickDuringActionIncomplete()
@@ -88,7 +92,7 @@ namespace GA.Game.AI
 
         public override void OnFinishedAction()
         {
-            golfer.State = new AIStatePostShot();
+            golfer.State = new AIStatePostShot(block);
             Debug.Log("FINISHED");
         }
     }

@@ -27,20 +27,15 @@ public class Actor : MonoBehaviour
         return Vector2.Distance(new Vector2(transform.position.x, transform.position.z), point) < distance;
     }
 
-    public bool FinishedMoving
+    public bool FinishedPathing
     {
         get
         {
-            if (startedMoving && Moving == false)
-            {
-                startedMoving = false;
+            if (!Moving && !startedPathing)
                 return true;
-            }
-            else return false;
+            else return false; 
         }
     }
-
-    private bool startedMoving;
 
     public bool Moving
     {
@@ -50,7 +45,6 @@ public class Actor : MonoBehaviour
                 return false;
             else
             {
-                startedMoving = true;
                 return true;
             }
         }
@@ -64,6 +58,8 @@ public class Actor : MonoBehaviour
             return _looking;
         }
     }
+
+    private bool startedPathing = false;
 
     public void StartToPathToPoints(Vector2[] points)
     {
@@ -173,6 +169,7 @@ public class Actor : MonoBehaviour
             yield return new WaitForEndOfFrame();
         }
 
+        startedPathing = false;
         Velocity = Vector2.zero;
         yield break;
 
@@ -184,8 +181,6 @@ public class Actor : MonoBehaviour
         MovementCo = StartCoroutine(MoveToPoint(point));
         if(look)
             LookCo = StartCoroutine(LookTowardsPoint(point));
-
-        startedMoving = true;
     }
 
     public IEnumerator StartToLookToPoint(Vector2 point)
@@ -199,6 +194,8 @@ public class Actor : MonoBehaviour
     {
         GA.Pathfinding.AStarGolferFinder golferFinder = new GA.Pathfinding.AStarGolferFinder(FlatPosition, point, family);
         StartCoroutine(golferFinder.FindPath(PathFound));
+
+        startedPathing = true;
     }
 
     private void PathFound(Vector2[] points)

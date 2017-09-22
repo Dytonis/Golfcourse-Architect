@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -9,15 +10,28 @@ namespace GA.Game.AI
     {
         public bool AtTeeBox = false;
 
-        public override void OnBecameActiveState()
+        public override IEnumerator EnumerationOnBecameActiveState()
         {
-            if (golfer.gamemode.HoleList.Count >= golfer.round.CurrentHole - 1)
+            if (golfer.CurrentHole)
             {
-                Hole goToHole = golfer.gamemode.HoleList[golfer.round.CurrentHole - 1];
-
-                if (goToHole.Open)
+                if (golfer.CurrentHole.Open)
                 {
-                    golfer.StartToPathToPoint(new Vector2(goToHole.TeesList[0].Position.x, goToHole.TeesList[0].Position.z), golfer.family);
+                    yield return StartSubState(new AISubState(() =>
+                    {
+                        golfer.StartToPathToPoint(golfer.CurrentTees.FlatPosition, golfer.family);
+                    }, () => { return golfer.FinishedPathing == true; }));
+
+                    yield return StartSubState(new AISubState(() =>
+                    {
+                        golfer.AnimationController.SetTrigger("ReachDown");
+                    }, () => { return golfer.AEST_ReachDown(); }));
+
+                    golfer.SpawnBall(golfer.CurrentTees.BallSpawnPosition, golfer.CurrentTees.transform.rotation, true);
+
+                    yield return new WaitForSeconds(0.15f);
+
+                    Complete = true;
+                    yield break;
                 }
                 else
                 {
@@ -28,12 +42,7 @@ namespace GA.Game.AI
 
         public override void OnTickDuringActionIncomplete()
         {
-            if(!golfer.Moving && AnimationIndex == 0)
-            {
-                AnimationIndex = 1;
-                golfer.AnimationController.SetTrigger("Tee_Ball");
-                golfer.CompleteInSeconds(1);
-            }
+            
         }
 
         public override void OnFinishedAction()

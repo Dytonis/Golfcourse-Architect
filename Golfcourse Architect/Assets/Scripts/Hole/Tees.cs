@@ -29,6 +29,15 @@ public class Tees : GA.Objects.TileObject
             PositionUpdated(value);
         }
     }
+
+    public Vector3 BallSpawnPosition
+    {
+        get
+        {
+            return new Vector3(transform.position.x, transform.position.y + 0.05f, transform.position.z);
+        }
+    }
+
 	// Use this for initialization
 	void Start () {
 		

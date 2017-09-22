@@ -7,6 +7,7 @@ using System.Collections;
 
 namespace GA.Game.AI
 {
+    [System.Obsolete]
     public class AIStateHitTeeShot : AIState
     {
         List<RailPoint> points;
@@ -84,7 +85,6 @@ namespace GA.Game.AI
 
         public override void OnFinishedAction()
         {
-            golfer.State = new AIStatePostShot();
             Debug.Log("FINISHED");
         }
     }

@@ -107,14 +107,14 @@ namespace GA.Pathfinding.Ballfinding
 
             for (int i = 0; i < iterations; i++)
             {
-                Vector3 dirToLast = Math.Direction(start, last.lastPoint);
+                Vector3 dirToLast = Math.Direction(start, last.closestPoint);
 
                 float angleDelta = Math.AngleDir(dir, dirToLast, Vector3.up);
 
-                Vector3 dirFromBallToTarget = Math.FlatDirection(last.lastPoint, target);
-                Vector3 dirFromBallToStart = Math.FlatDirection(last.lastPoint, start);
+                Vector3 dirFromBallToTarget = Math.FlatDirection(last.closestPoint, target);
+                Vector3 dirFromBallToStart = Math.FlatDirection(last.closestPoint, start);
                 float angleToTarget = Vector3.Angle(dirFromBallToTarget, dirFromBallToStart);
-                float distanceFromStartToBall = Math.FlatDistance(start, last.lastPoint);
+                float distanceFromStartToBall = Math.FlatDistance(start, last.closestPoint);
 
                 //last.angle += -angleDelta / 2;
 
@@ -124,7 +124,7 @@ namespace GA.Pathfinding.Ballfinding
                 {
                     oppDistance *= -1;
                 }
-                if (gap > distanceFromStartToBall)
+                if (Vector3.Dot(dirFromBallToStart, dirFromBallToTarget) < 0)
                 {
                     //ball is closer than target
                     distance *= -1;
@@ -135,25 +135,30 @@ namespace GA.Pathfinding.Ballfinding
 
                 last = getPathLine_Putt(last.speed, last.angle, start, target, dir);
 
-                distance = Mathf.Cos(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.lastPoint, target);
-                oppDistance = Mathf.Sin(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.lastPoint, target);
+                distance = Mathf.Cos(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.closestPoint, target);
+                oppDistance = Mathf.Sin(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.closestPoint, target);
 
-                Debug.DrawRay(last.lastPoint + (dirFromBallToStart.normalized * distance), dirFromBallToStart.normalized * -distance, Color.yellow, speed);
-                Debug.DrawRay(last.lastPoint + (dirFromBallToStart.normalized * distance), (Quaternion.AngleAxis(90, Vector3.up) * (dirFromBallToStart.normalized * -oppDistance)), Color.cyan, speed);
-                Debug.DrawRay(last.lastPoint, Vector3.up, Color.white, speed);
+                Debug.DrawRay(last.closestPoint + (dirFromBallToStart.normalized * distance), dirFromBallToStart.normalized * -distance, Color.yellow, speed);
+                Debug.DrawRay(last.closestPoint + (dirFromBallToStart.normalized * distance), (Quaternion.AngleAxis(90, Vector3.up) * (dirFromBallToStart.normalized * -oppDistance)), Color.cyan, speed);
+                Debug.DrawRay(last.closestPoint, Vector3.up, Color.white, speed);
 
-                float d = Math.FlatDistance(last.lastPoint, target);
+                float d = Vector3.Distance(last.closestPoint, new Vector3(target.x, target.y - 0.1f, target.z));
 
                 if (d < closestDistance)
                 {
                     closestDistance = d;
                     closest = last;
                 }
+                else if (last.isEndingInHole)
+                {
+                    closest = last;
+                    break;
+                }
                 yield return new WaitForSeconds(speed);
             }
 
             motion.drawDebug = true;
-            motion.Standard.CalculateRail(start, last.velocity, 0, 0);
+            motion.Putt.CalculateRail(start, last.velocity, 0, 0);
             yield break;
         }
 
@@ -178,14 +183,14 @@ namespace GA.Pathfinding.Ballfinding
 
             for (int i = 0; i < iterations; i++)
             {
-                Vector3 dirToLast = Math.Direction(start, last.lastPoint);
+                Vector3 dirToLast = Math.Direction(start, last.closestPoint);
 
                 float angleDelta = Math.AngleDir(dir, dirToLast, Vector3.up);
 
-                Vector3 dirFromBallToTarget = Math.FlatDirection(last.lastPoint, target);
-                Vector3 dirFromBallToStart = Math.FlatDirection(last.lastPoint, start);
+                Vector3 dirFromBallToTarget = Math.FlatDirection(last.closestPoint, target);
+                Vector3 dirFromBallToStart = Math.FlatDirection(last.closestPoint, start);
                 float angleToTarget = Vector3.Angle(dirFromBallToTarget, dirFromBallToStart);
-                float distanceFromStartToBall = Math.FlatDistance(start, last.lastPoint);
+                float distanceFromStartToBall = Math.FlatDistance(start, last.closestPoint);
 
                 //last.angle += -angleDelta / 2;
 
@@ -206,24 +211,29 @@ namespace GA.Pathfinding.Ballfinding
 
                 last = getPathLine_Putt(last.speed, last.angle, start, target, dir);
 
-                distance = Mathf.Cos(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.lastPoint, target);
-                oppDistance = Mathf.Sin(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.lastPoint, target);
+                distance = Mathf.Cos(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.closestPoint, target);
+                oppDistance = Mathf.Sin(Math.DegreesToRadians(angleToTarget)) * Math.FlatDistance(last.closestPoint, target);
 
-                Debug.DrawRay(last.lastPoint + (dirFromBallToStart.normalized * distance), dirFromBallToStart.normalized * -distance, Color.yellow, speed);
-                Debug.DrawRay(last.lastPoint + (dirFromBallToStart.normalized * distance), (Quaternion.AngleAxis(90, Vector3.up) * (dirFromBallToStart.normalized * -oppDistance)), Color.cyan, speed);
-                Debug.DrawRay(last.lastPoint, Vector3.up, Color.white, speed);
+                Debug.DrawRay(last.closestPoint + (dirFromBallToStart.normalized * distance), dirFromBallToStart.normalized * -distance, Color.yellow, speed);
+                Debug.DrawRay(last.closestPoint + (dirFromBallToStart.normalized * distance), (Quaternion.AngleAxis(90, Vector3.up) * (dirFromBallToStart.normalized * -oppDistance)), Color.cyan, speed);
+                Debug.DrawRay(last.closestPoint, Vector3.up, Color.white, speed);
 
-                float d = Vector3.Distance(last.lastPoint, new Vector3(target.x, target.y - 0.1f, target.z));
+                float d = Vector3.Distance(last.closestPoint, new Vector3(target.x, target.y - 0.1f, target.z));
 
                 if (d < closestDistance)
                 {
                     closestDistance = d;
                     closest = last;
                 }
+                else if (last.isEndingInHole)
+                {
+                    closest = last;
+                    break;
+                }
             }
 
             motion.drawDebug = true;
-            motion.Standard.CalculateRail(start, last.velocity, 0, 0);
+            motion.Putt.CalculateRail(start, last.velocity, 0, 0);
 
             return closest;
         }
@@ -250,7 +260,7 @@ namespace GA.Pathfinding.Ballfinding
             RailPoint[] rail = motion.Putt.CalculateRail(start, velocity, 0, 0);
 
             float distance = lastPointDistance(rail.ToArray(), target, out closestPoint);
-            block.lastPoint = closestPoint;
+            block.closestPoint = closestPoint;
             block.rail = rail;
 
             return block;

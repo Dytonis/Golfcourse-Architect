@@ -35,7 +35,7 @@ namespace GA.Game.AI
 
         public override void OnFinishedAction()
         {
-            golfer.State = new AIStateHitShot(block.rail.ToList());
+            golfer.State = new AIStateHitShot(block);
         }
 
         public override void OnTickDuringActionIncomplete()
