@@ -134,6 +134,48 @@ public class Chunk : MonoBehaviour
         texL2.Apply();
     }
 
+    public void BuildSmartSingleTexture(ChunkData cd, ChunkData old, int tileX, int tileY)
+    {
+        Texture2D texL0 = L0.material.mainTexture as Texture2D;
+        Texture2D texL1 = L1.material.mainTexture as Texture2D;
+        Texture2D texL2 = L2.material.mainTexture as Texture2D;
+
+        bool c0 = cd[tileX, tileY].type.spriteChildPath[0] != old[tileX, tileY].type.spriteChildPath[0];
+        bool c1 = cd[tileX, tileY].type.spriteChildPath[1] != old[tileX, tileY].type.spriteChildPath[1];
+        bool c2 = cd[tileX, tileY].type.spriteChildPath[2] != old[tileX, tileY].type.spriteChildPath[2];
+
+        if (c0)
+            texL0.SetPixels(tileX * tileTexSize, tileY * tileTexSize, tileTexSize, tileTexSize, cd[tileX, tileY].type.GetColorsFromTexture()[0]);
+        if (c1)
+            texL1.SetPixels(tileX * tileTexSize, tileY * tileTexSize, tileTexSize, tileTexSize, cd[tileX, tileY].type.GetColorsFromTexture()[1]);
+        if (c2)
+            texL2.SetPixels(tileX * tileTexSize, tileY * tileTexSize, tileTexSize, tileTexSize, cd[tileX, tileY].type.GetColorsFromTexture()[2]);
+
+        bool holeDrawn = HoleDrawList.Count > 0;
+
+        foreach (Vector2 v in HoleDrawList)
+        {
+            texL0.SetPixel((int)v.x, (int)v.y, Color.clear);
+            texL1.SetPixel((int)v.x, (int)v.y, Color.clear);
+            texL2.SetPixel((int)v.x, (int)v.y, Color.clear);
+        }
+
+        texL0.filterMode = FilterMode.Point;
+        texL1.filterMode = FilterMode.Point;
+        texL2.filterMode = FilterMode.Point;
+
+        L0.material.SetTexture("_MainTex", texL0);
+        L1.material.SetTexture("_MainTex", texL1);
+        L2.material.SetTexture("_MainTex", texL2);
+
+        if(holeDrawn == true || c0)
+            texL0.Apply();
+        if (holeDrawn == true || c1)
+            texL1.Apply();
+        if (holeDrawn == true || c2)
+            texL2.Apply();
+    }
+
     private Dictionary<Vector2, QuadReference> TriangleQuadDict = new Dictionary<Vector2, QuadReference>();
 
     public void SetPositionAsHole(int tileX, int tileY, int subTileX, int subTileY)

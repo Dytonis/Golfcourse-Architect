@@ -6,7 +6,8 @@ using UnityEngine;
 
 namespace GA.Physics
 {
-    public class BallMotionPutt : BallPhysics
+    [System.Obsolete]
+    public class BallMotionPuttOld : BallPhysics
     {
         public const float BounceSpeed = 0.08f;
 
@@ -28,7 +29,9 @@ namespace GA.Physics
 
             for (int i = 0; i < 250; i++)
             {
-                if(SkipPackage == false)
+                rp.point += rp.velocity;
+
+                if (SkipPackage == false)
                     package = GetAccelTowards(rp.point, rp.velocity.normalized, 0f, rp.velocity.magnitude);
 
                 if (package.detected)
@@ -63,8 +66,6 @@ namespace GA.Physics
                 else
                 {
                     rp.grounded = false;
-
-                    rp.point += rp.velocity;
 
                     rp.velocity = new Vector3(rp.velocity.x, rp.velocity.y - 0.0381f, rp.velocity.z); //gravity
                     rp.velocity *= 1 - (0.05f * rp.velocity.magnitude); //drag

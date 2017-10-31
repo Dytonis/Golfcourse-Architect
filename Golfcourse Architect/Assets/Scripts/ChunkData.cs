@@ -11,6 +11,25 @@ public class ChunkData
 
     internal List<List<Tile>> data = new List<List<Tile>>();
 
+    public ChunkData DeepCopy()
+    {
+        ChunkData d = new ChunkData(source);
+
+        d.data = new List<List<Tile>>();
+
+        for(int y = 0; y < source.Size.y + 1; y++)
+        {
+            d.data.Add(new List<Tile>());
+
+            for(int x = 0; x < source.Size.x + 1; x++)
+            {
+                d.data[y].Add(new Tile() { elevation = this[x, y].elevation, type = this[x, y].type, obj = this[x, y].obj });
+            }
+        }
+
+        return d;
+    }
+
     public ChunkData(Chunk chunk)
     {
         source = chunk;

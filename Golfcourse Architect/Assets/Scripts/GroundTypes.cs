@@ -21,7 +21,7 @@ namespace GA.Ground
         public virtual float price { get; set; }
         public virtual float accuracyMod { get; set; }
         public virtual float distanceMod { get; set; }
-        public virtual float spinMod { get; set;  }
+        public virtual float spinMod { get; set; }
         public virtual float shotWeight { get; set; }
         public virtual float walkWeight { get; set; }
         public virtual float shotRisk { get; set; }
@@ -53,12 +53,13 @@ namespace GA.Ground
 
         public Color[][] GetColorsFromTexture()
         {
-            Sprite[] spriteSheet = Resources.LoadAll<Sprite>("GroundSprites/GroundTileSheet1")
-                .OfType<Sprite>().ToArray();
+            Sprite[] spriteSheet = TextureData.GetSpriteSheet();
 
-            Sprite s0 = spriteSheet[spriteChildPath[0]];
-            Sprite s1 = spriteSheet[spriteChildPath[1]];
-            Sprite s2 = spriteSheet[spriteChildPath[2]];
+            MultiTextureFactory factory = new MultiTextureFactory();
+
+            Sprite s0 = spriteSheet[factory[spriteChildPath[0]]];
+            Sprite s1 = spriteSheet[factory[spriteChildPath[1]]];
+            Sprite s2 = spriteSheet[factory[spriteChildPath[2]]];
 
             Sprite[] sprites = new Sprite[]
             {
@@ -93,7 +94,7 @@ namespace GA.Ground
             {
                 return new int[]
                 {
-                    (int)GroundSprites.ROUGH_STANDARD,
+                    (int)GroundSprites.ROUGH_STANDARD_MT,
                     (int)GroundSprites.TRANSPARENT,
                     (int)GroundSprites.DARK_PLATE,
                 };
@@ -555,13 +556,79 @@ namespace GA.Ground
 
     public enum GroundSprites
     {
-        TRANSPARENT = 8,
-        ROUGH_STANDARD = 1,
-        FAIRWAY_STANDARD = 0,
+        TRANSPARENT = 0,
+        ROUGH_STANDARD_MT = 0xFF00, //Export to MultiTexture 0xFF00
+        ROUGH_STANDARD = 2, 
+        FAIRWAY_STANDARD = 1,
         FAIRWAY_FAST = 100,
-        GREEN_STANDARD = 2,
-        DARK_PLATE = 7,
+        GREEN_STANDARD = 3,
+        DARK_PLATE = 8,
         GRAVEL = 9,
-        TEEBOX = 0
+        TEEBOX = 1
+    }
+
+    public static class MultiTexture
+    {
+        public static int[][] Textures = new int[][]
+        {
+            new int[] { 10, 11, 12, 13, 14, 15, 16 }, //0xFF00
+                                                      //0xFF01
+                                                      //0xFF02
+        };
+    }
+
+    public sealed class MultiTextureFactory
+    {
+        public int this[int i, int fallback = 1]
+        {
+            get
+            {
+                if (i >= 0xFF00)
+                {
+                    int n = i & 0x00FF; //we want thet second byte only
+                    if (MultiTexture.Textures.Length >= n) //check if the MultiTexture jagged has an entry of the desired id
+                    {
+                        int[] t = MultiTexture.Textures[n];
+                        return t[UnityEngine.Random.Range((int)0, t.Length)];
+                    }
+                    else
+                    {
+                        return fallback;
+                    }
+                }
+                else
+                {
+                    return i;
+                }
+            }
+        }
+    }
+
+    public static class TextureData
+    {
+        private static Sprite[] spriteSheet; 
+
+        public static Sprite[] GetSpriteSheet()
+        {
+            if (spriteSheet != null)
+            {
+                if (spriteSheet.Length == 0)
+                {
+                    UpdateSpriteSheet();
+                }
+            }
+            else
+            {
+                UpdateSpriteSheet();
+            }
+
+            return spriteSheet;
+        }
+
+        public static void UpdateSpriteSheet()
+        {
+            spriteSheet = Resources.LoadAll<Sprite>("GroundSprites/GroundTileSheet1")
+                .OfType<Sprite>().ToArray();
+        }
     }
 }

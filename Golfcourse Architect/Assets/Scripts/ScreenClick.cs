@@ -279,7 +279,8 @@ public class ScreenClick : MonoBehaviour
                         if (Input.GetMouseButtonUp(0) && Family.GetChunkDataPointTypeofGroundTypeGlobally((int)globalX, (int)globalY) == typeof(GA.Ground.Green))
                         {
                             c.SetPositionAsHole((int)x, (int)y, (int)(lpX), (int)(lpY));
-                            c.BuildTexture(c.data);
+                            ChunkData old = c.data.DeepCopy();
+                            c.BuildSmartSingleTexture(c.data, old, (int)x, (int)y);
                             Pin newPin = Instantiate(pinObject, pinObject.transform.position, pinObject.transform.rotation);
                             newPin.PositionFine = new Vector3(pX + (1f / 16f), pE - 0.03f, pY + (1f / 16f));
                             UIController.DeactivateMinors();
@@ -308,12 +309,13 @@ public class ScreenClick : MonoBehaviour
                     int triangle = hit.triangleIndex;
 
                     Chunk c = hit.collider.GetComponent<Chunk>();
+                    ChunkData old = c.data.DeepCopy();
 
                     int y = (triangle / 2) % (int)c.Size.x;
                     int x = triangle / ((int)c.Size.x * 2);
 
                     c.data.SetGroundType(x, y, type);
-                    c.BuildTexture(c.data);
+                    c.BuildSmartSingleTexture(c.data, old, x, y);
                 }
             }
         }

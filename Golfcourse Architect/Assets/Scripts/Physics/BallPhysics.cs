@@ -31,6 +31,26 @@ namespace GA.Physics
             return vel;
         }
 
+        /// <summary>
+        /// Takes in velocity v, and transforms it to be parrallel to slope given normal, removing velocity adjacent to normal
+        /// </summary>
+        /// <param name="velIn">The velocity in</param>
+        /// <param name="normal">The normal of the slope</param>
+        /// <param name="f">Friction of the surface</param>
+        /// <returns></returns>
+        protected Vector3 Slide(Vector3 velIn, Vector3 normal, float f)
+        {
+            Vector3 u = ((Vector3.Dot(velIn, normal) / normal.sqrMagnitude) * normal);
+            Vector3 w = velIn - u;
+
+            Vector3 vel = f * w;
+
+            if (vel.magnitude != vel.magnitude)
+                return Vector3.zero;
+
+            return vel;
+        }
+
         protected SlopePackage GetAccelTowards(Vector3 pos, Vector3 direction, float backup = 0.1f, float distance = 200, float gravity = 9.81f)
         {
             Vector3 normalUnder = Vector3.up;
@@ -49,6 +69,7 @@ namespace GA.Physics
             }
 
             Debug.DrawRay(pos, Vector3.up * 0.15f, Color.yellow, 1f);
+            Debug.DrawRay(pos, direction, Color.red, 1f);
 
             float angle = Vector3.Angle(normalUnder, Vector3.up);
 
@@ -77,6 +98,11 @@ namespace GA.Physics
                 detected = h,
                 groundType = type,
             };
+        }
+
+        protected Vector3 SlopeByGravity(Vector3 inVector3, float gravity)
+        {
+            return (inVector3.y - gravity) * inVector3;
         }
     }
 }
