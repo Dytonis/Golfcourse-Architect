@@ -54,8 +54,6 @@ namespace GA.Physics
 
                 if(package.detected) //if hit
                 {
-                    //hole stuff
-
                     rp.grounded = true;
                     rp.point = package.hit.point;
                     rail.Add(rp.Copy());
@@ -89,6 +87,11 @@ namespace GA.Physics
                 else
                 {
                     rp.velocity = new Vector3(rp.velocity.x, rp.velocity.y - gravity, rp.velocity.z); //apply gravity
+                }
+
+                if(package.detected || gravityPackage.detected)
+                {
+                    //hole stuff
                 }
 
                 rp.point += rp.velocity;
