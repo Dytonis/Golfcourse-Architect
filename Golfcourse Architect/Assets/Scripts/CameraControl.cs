@@ -37,12 +37,17 @@ public class CameraControl : MonoBehaviour
         float speedNormalized = ((-Camera.transform.localPosition.z - min) / (MinMaxZoom.y - min)) * Speed;
         float brakeNormalized = ((-Camera.transform.localPosition.z - min) / (MinMaxZoom.y - min)) * Brake;
 
-        ChangeVelocity(accelNormalized, brakeNormalized);
-        ClampSpeed(speedNormalized);
+        if (GA.Game.InputStatus.AllowCameraMovement)
+        {
+            ChangeVelocity(accelNormalized, brakeNormalized);
+            ClampSpeed(speedNormalized);
 
-        transform.Translate(new Vector3(Velocity.x, 0, Velocity.y) * Time.deltaTime);
-        HandleCameraRotation();
-        HandleZoom();
+            transform.Translate(new Vector3(Velocity.x, 0, Velocity.y) * Time.deltaTime);
+        }
+        if(GA.Game.InputStatus.AllowCameraRotation)
+            HandleCameraRotation();
+        if(GA.Game.InputStatus.AllowCameraScroll)
+            HandleZoom();
     }
 
     private void ChangeVelocity(float accelNormalized, float brakeNormalized)

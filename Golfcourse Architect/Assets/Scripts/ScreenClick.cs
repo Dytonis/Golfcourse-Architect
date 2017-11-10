@@ -1,11 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using GA.Ground;
 using UnityEngine.EventSystems;
+using System;
+using GA.UI;
+using GA.UI.Windows.HoleInfoMenu;
+using GA;
 
 public class ScreenClick : MonoBehaviour
 {
-    public ClickType ClickAction;
+    public ClickAction ClickAction = new ClickAction();
     public ChunkFamily Family;
     public StandardGamemode Gamemode;
     public UIController UIController;
@@ -29,6 +34,78 @@ public class ScreenClick : MonoBehaviour
     private bool newSubTileThisFrame = false;
     private Vector2 currentTileHovered = new Vector2();
     private Vector2 currentSubTileHovered = new Vector2();
+
+    public void CalculateNewTilesThisFrame()
+    {
+        ScreenMousePositionInfo info = GetScreenMousePositionInfo();
+
+        currentSubTileHovered = info.PreciseGlobal;
+        currentTileHovered = info.Global;
+
+        if (currentSubTileHovered == lastSubTileHovered)
+            newSubTileThisFrame = false;
+        else newSubTileThisFrame = true;
+
+        if (currentTileHovered == lastTileHovered)
+            newTileThisFrame = false;
+        else newTileThisFrame = true;
+
+        lastTileHovered = currentTileHovered;
+        lastSubTileHovered = currentSubTileHovered;
+    }
+
+    public ScreenMousePositionInfo GetScreenMousePositionInfo()
+    {
+        ScreenMousePositionInfo info = new ScreenMousePositionInfo();
+
+        Ray r = Camera.main.ScreenPointToRay(Input.mousePosition);
+        info.RayUsed = r;
+        RaycastHit hit;
+        if (Physics.Raycast(r, out hit, 100f))
+        {
+            if (hit.collider.GetComponent<Chunk>() != null)
+            {
+                info.Excists = true;
+
+                int triangle = hit.triangleIndex;
+
+                Chunk c = hit.collider.GetComponent<Chunk>();
+
+                info.ChunkOver = c;
+
+                float y = ((triangle / 2) % (int)c.Size.x);
+                float x = (triangle / ((int)c.Size.x * 2));
+
+                info.Local = new Vector2(x, y);
+
+                float globalY = c.getGlobalPointFromLocal(x, y).y;
+                float globalX = c.getGlobalPointFromLocal(x, y).x;
+
+                info.Global = new Vector2(globalX, globalY);
+
+                float lpX = (int)((hit.point.x % 1) * 8);
+                float lpY = (int)((hit.point.z % 1) * 8);
+
+                info.LocalSubTile = new Vector2(lpX, lpY);
+
+                float pX = (lpX / 8f) + globalX;
+                float pY = (lpY / 8f) + globalY;
+
+                info.PreciseGlobal = new Vector2(pX, pY);
+            }
+            else
+            {
+                info.Excists = false;
+            }
+        }
+        else
+        {
+            info.Excists = false;
+        }
+
+        return info;
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -38,67 +115,43 @@ public class ScreenClick : MonoBehaviour
             return;
         }
 
-        Ray r = Camera.main.ScreenPointToRay(Input.mousePosition);
+        ScreenMousePositionInfo info = GetScreenMousePositionInfo();
+        CalculateNewTilesThisFrame();
 
         mouseVelocityLastFrame = new Vector2(Input.mousePosition.x - mousePositionLastFrame.x, Input.mousePosition.y - mousePositionLastFrame.y);
-        RaycastHit hit;
-        if (Physics.Raycast(r, out hit, 100f))
+
+        if (Input.GetMouseButtonDown(0))
         {
-            if (hit.collider.GetComponent<Chunk>() != null)
+            if (ClickAction.type == ClickType.PLACE_TILE_FAIRWAY)
+                Family.SetGroundType<Fairway>(info.Global);
+            else if (ClickAction.type == ClickType.PLACE_TILE_GREEN)
+                Family.SetGroundType<Green>(info.Global);
+            else if (ClickAction.type == ClickType.NONE)
             {
-                int triangle = hit.triangleIndex;
-
-                Chunk c = hit.collider.GetComponent<Chunk>();
-
-                float y = ((triangle / 2) % (int)c.Size.x);
-                float x = (triangle / ((int)c.Size.x * 2));
-
-                float globalY = c.getGlobalPointFromLocal(x, y).y;
-                float globalX = c.getGlobalPointFromLocal(x, y).x;
-
-                float lpX = (int)((hit.point.x % 1) * 8);
-                float lpY = (int)((hit.point.z % 1) * 8);
-
-                float pX = (lpX / 8f) + globalX;
-                float pY = (lpY / 8f) + globalY;
-
-                currentSubTileHovered = new Vector2(pX, pY);
-                currentTileHovered = new Vector2(globalX, globalY);
+                TryActivateHole(info.Global);
             }
         }
 
-        if(currentTileHovered.x == lastTileHovered.x && currentTileHovered.y == lastTileHovered.y)
-        {
-            newTileThisFrame = false;
-        } 
-        else
-        {
-            newTileThisFrame = true;
-        }
-
-        if(currentSubTileHovered.x == lastSubTileHovered.x && currentSubTileHovered.y == lastSubTileHovered.y)
-        {
-            newSubTileThisFrame = false;
-        }
-        else
-        {
-            newSubTileThisFrame = true;
-        }
-
-        if (ClickAction == ClickType.PLACE_TILE_FAIRWAY)
-            ChangeTileType(r, new GA.Ground.Fairway());
-        else if (ClickAction == ClickType.PLACE_TILE_GREEN)
-            ChangeTileType(r, new GA.Ground.Green());
-        else if (ClickAction == ClickType.EULER_VERTEX)
-            Euler_Vertex(r);
-        else if (ClickAction == ClickType.PLACE_HOLE_TEES)
-            PlaceHoleObject(r, "tee");
-        else if (ClickAction == ClickType.PLACE_HOLE_PIN)
-            PlaceHoleObject(r, "pin");
+        if (ClickAction.type == ClickType.EULER_VERTEX)
+            Euler_Vertex(info.RayUsed);
+        else if (ClickAction.type == ClickType.PLACE_HOLE_TEES)
+            PlaceTeeObject(info.Global, info.ChunkOver);
+        else if (ClickAction.type == ClickType.PLACE_HOLE_PIN)
+            PlaceHoleObject(info.RayUsed, "pin");
 
         mousePositionLastFrame = Input.mousePosition;
-        lastTileHovered = currentTileHovered;
-        lastSubTileHovered = currentSubTileHovered;
+    }
+
+    private void TryActivateHole(Vector2 position)
+    {
+        if(Family.GetChunkDataPointTypeofGroundTypeGlobally((int)position.x, (int)position.y) == typeof(Teebox))
+        {
+            Teebox reference = Family.GetGroundTypeInstance(position) as Teebox;
+
+            HoleInfoMenu prefab = (Resources.Load(ResourceFinder.UIElements.Menus.HoleInfoMenu) as GameObject).GetComponent<HoleInfoMenu>();
+            HoleInfoMenu menu = UIElement.Pop(prefab);
+            menu.SetHole(reference.TeesBoundTo.HoleBelongingTo);
+        }
     }
 
     public void ResetState()
@@ -113,9 +166,9 @@ public class ScreenClick : MonoBehaviour
             Destroy(pinObject.gameObject);
         }
 
-        if(Family.CurrentHoleCreating)
+        if (Family.CurrentHoleCreating)
         {
-            if(Family.CurrentHoleCreating.line)
+            if (Family.CurrentHoleCreating.line)
             {
                 Family.CurrentHoleCreating.line.enabled = false;
             }
@@ -124,6 +177,7 @@ public class ScreenClick : MonoBehaviour
 
     Tees teeObject;
     Pin pinObject;
+    [System.Obsolete]
     private void PlaceHoleObject(Ray r, string obj) //needs refactoring, cyclomatic complexity is 30
     {
         if (mouseVelocityLastFrame == Vector2.zero && Input.GetMouseButtonUp(0) == false)
@@ -192,12 +246,12 @@ public class ScreenClick : MonoBehaviour
                             newTees.FlatPosition = new Vector2(globalX, globalY);
                             newTees.CreateFencing();
                             UIController.DeactivateMinors();
-                            ClickAction = ClickType.NONE;
+                            ClickAction.type = ClickType.NONE;
                             c.FastBuild(c.data);
                             c.BuildTexture(c.data);
-                            ResetState();
 
-                            newTees.OnPlacement(Family, UIController);
+                            newTees.OnPlacement(Family, UIController, Family.CurrentHoleCreating);
+                            ResetState();
                         }
                     }
                 }
@@ -270,8 +324,8 @@ public class ScreenClick : MonoBehaviour
 
                         if (Family.CurrentHoleCreating.line == null)
                             Family.CurrentHoleCreating.line = Family.CurrentHoleCreating.GetDrawLine();
-                        
-                        if(Family.CurrentHoleCreating.TeesList.Count > 0)
+
+                        if (Family.CurrentHoleCreating.TeesList.Count > 0)
                             Family.CurrentHoleCreating.lineTeeObject = Family.CurrentHoleCreating.TeesList[0];
 
                         Family.CurrentHoleCreating.pinLineObject = pinObject;
@@ -284,7 +338,7 @@ public class ScreenClick : MonoBehaviour
                             Pin newPin = Instantiate(pinObject, pinObject.transform.position, pinObject.transform.rotation);
                             newPin.PositionFine = new Vector3(pX + (1f / 16f), pE - 0.03f, pY + (1f / 16f));
                             UIController.DeactivateMinors();
-                            ClickAction = ClickType.NONE;
+                            ClickAction.InvokeAction();
                             ResetState();
 
                             newPin.OnPlacement(Family, UIController);
@@ -295,6 +349,61 @@ public class ScreenClick : MonoBehaviour
         }
     }
 
+    private void PlaceTeeObject(Vector2 position, Chunk c)
+    {
+        if (teeObject == null)
+            teeObject = Instantiate(teesPrefab) as Tees;                                    //Create the temporary tee object
+
+        if (Family.CurrentHoleCreating == null)
+        {
+            Family.CurrentHoleCreating = Instantiate(holePrefab);                           //Initialize the hole if there isn't one
+            Family.CurrentHoleCreating.Init(Gamemode, Family, UIController);
+            Family.CurrentHoleCreating.OnCreation();
+        }
+        else if (Family.CurrentHoleCreating.ConstructingCurrently == false)                 //Start the construction process if it needs to be
+        {
+            Family.CurrentHoleCreating.OnStartConstruction();
+            Family.CurrentHoleCreating.ConstructingCurrently = true;
+        }
+
+        float lowest = Family.GetLowestElevationUnderTileGlobalRaycast(position.x, position.y);
+        teeObject.Position = new Vector3(position.x + 0.5f, lowest + 0.03f, position.y + 0.5f);
+        teeObject.family = Family;
+
+        if (newTileThisFrame)
+        {
+            if (Family.CurrentHoleCreating.currentPin && teeObject)
+                Family.CurrentHoleCreating.Construction_CalculateTempLine(teeObject, Family.CurrentHoleCreating.currentPin);
+        }
+
+        if (Family.CurrentHoleCreating != null)
+        {
+            if (Family.CurrentHoleCreating.line == null)
+                Family.CurrentHoleCreating.line = Family.CurrentHoleCreating.GetDrawLine();
+        }
+
+        Family.CurrentHoleCreating.lineTeeObject = teeObject;
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            Family.ModifyChunkDataPointTileElevationGlobally((int)position.x, (int)position.y, lowest);
+            Tees newTees = Instantiate(teeObject, teeObject.transform.position, teeObject.transform.rotation);
+            newTees.FlatPosition = new Vector2((int)position.x, (int)position.y);
+            newTees.CreateFencing();
+            Teebox teebox = new Teebox();
+            teebox.TeesBoundTo = newTees;
+            Family.SetComplexGroundType(position, teebox);
+            UIController.DeactivateMinors();
+            ClickAction.InvokeAction();
+            c.FastBuild(c.data);
+
+            newTees.OnPlacement(Family, UIController, Family.CurrentHoleCreating);
+
+            ResetState();
+        }
+    }
+
+    [System.Obsolete]
     private void ChangeTileType(Ray r, GA.Ground.GroundType type)
     {
         if (Input.GetMouseButtonDown(0))
@@ -333,7 +442,7 @@ public class ScreenClick : MonoBehaviour
             {
                 Vector2 vertex = new Vector2(Mathf.RoundToInt(hit.point.x) % (c.Size.x), Mathf.RoundToInt(hit.point.z) % (c.Size.y));
 
-                if((hit.point.x) % (c.Size.x) >= c.Size.x - 0.5f) //near boundry, need to switch tiles to next chunk over
+                if ((hit.point.x) % (c.Size.x) >= c.Size.x - 0.5f) //near boundry, need to switch tiles to next chunk over
                 {
                     c = Family.chunkList[(int)c.GlobalPosition.x + 1, (int)c.GlobalPosition.y];
                 }
@@ -364,9 +473,42 @@ public class ScreenClick : MonoBehaviour
     }
 }
 
+[System.Serializable]
+public class ClickAction
+{
+    public ClickType type;
+    private Action Callback;
+
+    public ClickAction()
+    {
+        Callback = new Action(() => { type = ClickType.NONE; });
+    }
+
+    public ClickAction(Action callback)
+    {
+        Callback = callback;
+    }
+
+    public ClickAction(ClickType type)
+    {
+        this.type = type;
+    }
+
+    public ClickAction(ClickType type, Action callback)
+    {
+        this.type = type;
+        Callback = callback;
+    }
+
+    public void InvokeAction()
+    {
+        Callback.Invoke();
+    }
+}
+
 public enum ClickType
 {
-    NONE,
+    NONE = 0,
     PLACE_TILE_FAIRWAY,
     EULER_VERTEX,
     EULER_FACE,
@@ -378,4 +520,15 @@ public enum ClickType
     PLACE_TILE_WATER,
     PLACE_HOLE_PIN,
     PLACE_HOLE_TEES,
+}
+
+public struct ScreenMousePositionInfo
+{
+    public bool Excists;
+    public Ray RayUsed;
+    public Vector2 Local;
+    public Vector2 LocalSubTile;
+    public Chunk ChunkOver;
+    public Vector2 Global;
+    public Vector2 PreciseGlobal;
 }

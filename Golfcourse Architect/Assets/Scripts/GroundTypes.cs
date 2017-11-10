@@ -420,6 +420,8 @@ namespace GA.Ground
                 base.shotFromRiskPenalty = value;
             }
         }
+
+        public Tees TeesBoundTo;
     }
 
     public class Max_Bounds : GroundType

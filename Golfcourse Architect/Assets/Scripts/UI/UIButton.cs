@@ -66,7 +66,7 @@ public class UIButton : MonoBehaviour, IPointerClickHandler
 
     public void Deactivate()
     {
-        clicker.ClickAction = ClickType.NONE;
+        clicker.ClickAction.type = ClickType.NONE;
         GetComponent<RawImage>().texture = Normal;
         On = false;
     }
@@ -117,26 +117,26 @@ public class UIButton : MonoBehaviour, IPointerClickHandler
                 {
                     if (Tiles == TilesButtonID.Fairway)
                     {
-                        clicker.ClickAction = ClickType.PLACE_TILE_FAIRWAY;
+                        clicker.ClickAction.type = ClickType.PLACE_TILE_FAIRWAY;
                     }
                     else if (Tiles == TilesButtonID.Rough)
                     {
-                        clicker.ClickAction = ClickType.PLACE_TILE_ROUGH;
+                        clicker.ClickAction.type = ClickType.PLACE_TILE_ROUGH;
                     }
                     else if (Tiles == TilesButtonID.Green)
                     {
-                        clicker.ClickAction = ClickType.PLACE_TILE_GREEN;
+                        clicker.ClickAction.type = ClickType.PLACE_TILE_GREEN;
                     }
                 }
                 else if (GroupParent.Major == MajorButtonID.Hole)
                 {
                     if (HoleObjects == HoleObjectButtonID.Pin)
                     {
-                        clicker.ClickAction = ClickType.PLACE_HOLE_PIN;
+                        clicker.ClickAction.type = ClickType.PLACE_HOLE_PIN;
                     }
                     else if (HoleObjects == HoleObjectButtonID.Teebox)
                     {
-                        clicker.ClickAction = ClickType.PLACE_HOLE_TEES;
+                        clicker.ClickAction.type = ClickType.PLACE_HOLE_TEES;
                     }
                 }
             }

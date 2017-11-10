@@ -529,6 +529,7 @@ public class ChunkFamily : MonoBehaviour
         return c.data[(int)local.x, (int)local.y].elevation;
     }
 
+    [System.Obsolete]
     public void ModifyChunkDataPointTypeGlobally(int x, int y, GA.Ground.GroundType type)
     {
         Chunk c = chunkFromGlobalTilePos(x, y);
@@ -536,6 +537,52 @@ public class ChunkFamily : MonoBehaviour
         Vector2 local = LocalPositionFromChunkSize(x, y);
 
         c.data.SetGroundType((int)local.x, (int)local.y, type);
+    }
+
+    /// <summary>
+    /// Use this method to change a tile on a global x/y grid. This method will do a smart texture build.
+    /// </summary>
+    /// <param name="position">The tile to be changed (int truncated)</param>
+    /// <param name="type">The type of the new tile.</param>
+    /// <param name="Rebuild">If true, this method will automatically rebuild the texture for that chunk.</param>
+    public void SetGroundType<T>(Vector2 position, bool Rebuild = true) where T : GA.Ground.GroundType, new()
+    {
+        Vector2 local = LocalPositionFromChunkSize((int)position.x, (int)position.y);
+
+        int x = (int)local.x;
+        int y = (int)local.y;
+
+        Chunk c = chunkFromGlobalTilePos((int)position.x, (int)position.y);
+        ChunkData old = null;
+        if (Rebuild)
+            old = c.data.DeepCopy();
+        
+        c.data.SetGroundType(x, y, new T());
+        if(Rebuild)
+            c.BuildSmartSingleTexture(c.data, old, x, y);
+    }
+
+    /// <summary>
+    /// Use this method to change a tile on a global x/y grid. This method will do a smart texture build. Use this method instead of SetGroundType when the type requires complex data (eg Teebox)
+    /// </summary>
+    /// <param name="position">The tile to be changed (int truncated)</param>
+    /// <param name="type">The type of the new tile.</param>
+    /// <param name="Rebuild">If true, this method will automatically rebuild the texture for that chunk.</param>
+    public void SetComplexGroundType(Vector2 position, GA.Ground.GroundType type, bool Rebuild = true)
+    {
+        Vector2 local = LocalPositionFromChunkSize((int)position.x, (int)position.y);
+
+        int x = (int)local.x;
+        int y = (int)local.y;
+
+        Chunk c = chunkFromGlobalTilePos((int)position.x, (int)position.y);
+        ChunkData old = null;
+        if (Rebuild)
+            old = c.data.DeepCopy();
+
+        c.data.SetGroundType(x, y, type);
+        if (Rebuild)
+            c.BuildSmartSingleTexture(c.data, old, x, y);
     }
 
     public void ModifyChunkDataPointTypeGloballyTemporarily(int x, int y, GA.Ground.GroundType type)
@@ -581,6 +628,20 @@ public class ChunkFamily : MonoBehaviour
         Vector2 local = LocalPositionFromChunkSize(x, y);
 
         return c.data[(int)local.x, (int)local.y].type.GetType();
+    }
+
+    /// <summary>
+    /// Use this method to return the unique instance of the ground type at the position.
+    /// </summary>
+    /// <param name="position">The position to get</param>
+    /// <returns>The unique instance of the ground type.</returns>
+    public GA.Ground.GroundType GetGroundTypeInstance(Vector2 position)
+    {
+        Chunk c = chunkFromGlobalTilePos((int)position.x, (int)position.y);
+
+        Vector2 local = LocalPositionFromChunkSize((int)position.x, (int)position.y);
+
+        return c.data[(int)local.x, (int)local.y].type;
     }
 
     public System.Type GetChunkDataPointTypeofGroundTypeGloballyTemporarily(int x, int y)

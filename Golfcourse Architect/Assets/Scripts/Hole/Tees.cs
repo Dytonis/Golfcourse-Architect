@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Tees : GA.Objects.TileObject
 {
+    public Hole HoleBelongingTo;
     public TeeTypes TeeType;
     public Color TeeColor = Color.white;
     public ChunkFamily family;
@@ -102,9 +103,10 @@ public class Tees : GA.Objects.TileObject
         
     }
 
-    public void OnPlacement(ChunkFamily family, UIController controller)
+    public void OnPlacement(ChunkFamily family, UIController controller, Hole hole)
     {
         //disable tees button
+        HoleBelongingTo = hole;
         controller.TeeButton.DisableButton();
         family.CurrentHoleCreating.TeesList.Add(this);
 

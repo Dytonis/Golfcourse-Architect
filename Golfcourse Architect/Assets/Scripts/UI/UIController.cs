@@ -45,12 +45,47 @@ public class UIController : MonoBehaviour
         foreach (UIButton b in Minors)
             b.Deactivate();
     }
+
+    public void EnableMinors()
+    {
+        foreach (UIButton b in Minors)
+            b.EnableButton();
+    }
+
+    public void DisableMinors()
+    {
+        foreach (UIButton b in Minors)
+            b.DisableButton();
+    }
+
     public void DeactivateMajors()
     {
         foreach (UIButton b in Majors)
             b.Deactivate();
 
         if(BarOutCurrently)
+        {
+            StartCoroutine(MoveRect(BarOutCurrently, new Vector2(-2000, BarOutCurrently.anchoredPosition.y), BarOutCurrently.anchoredPosition, 10));
+        }
+    }
+
+    public void EnableMajors()
+    {
+        foreach (UIButton b in Majors)
+            b.EnableButton();
+
+        if (BarOutCurrently)
+        {
+            StartCoroutine(MoveRect(BarOutCurrently, new Vector2(-2000, BarOutCurrently.anchoredPosition.y), BarOutCurrently.anchoredPosition, 10));
+        }
+    }
+
+    public void DisableMajors()
+    {
+        foreach (UIButton b in Majors)
+            b.DisableButton();
+
+        if (BarOutCurrently)
         {
             StartCoroutine(MoveRect(BarOutCurrently, new Vector2(-2000, BarOutCurrently.anchoredPosition.y), BarOutCurrently.anchoredPosition, 10));
         }
