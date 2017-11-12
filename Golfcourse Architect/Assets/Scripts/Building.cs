@@ -76,7 +76,7 @@ public class Building : MonoBehaviour
                 continue;
             if (p.z >= maxY - 1)
                 continue;
-            family.ModifyChunkDataPointTypeGlobally((int)p.x, (int)p.z, new GA.Ground.Gravel());
+            family.ModifyChunkDataPointTypeGlobally((int)p.x, (int)p.z, new GA.Game.GroundTypes.Gravel());
             family.ModifyChunkDataObjectIDGlobally((int)p.x, (int)p.z, ObjectID.EMPTY);   
         }
 

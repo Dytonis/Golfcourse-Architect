@@ -65,7 +65,7 @@ namespace GA.Pathfinding
                     if (containsInClosed(a.X, a.Y))
                         continue;
 
-                    GA.Ground.GroundType type = family.GetChunkDataPointGroundTypeGlobally(a.X, a.Y);
+                    GA.Game.GroundTypes.GroundType type = family.GetChunkDataPointGroundTypeGlobally(a.X, a.Y);
 
                     float adjMoveCost = current.G + getDistance(new Vector2(current.X, current.Y), new Vector2(a.X, a.Y)) + type.shotWeight;
 

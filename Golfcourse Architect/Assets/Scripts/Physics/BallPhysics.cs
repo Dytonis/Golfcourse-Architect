@@ -78,7 +78,7 @@ namespace GA.Physics
             float accel = sinOfAngle * gravity;
             Vector3 accelDirection = new Vector3(normalUnder.x, 0, normalUnder.z).normalized;
 
-            GA.Ground.GroundType type = new GA.Ground.Rough_Standard();
+            GA.Game.GroundTypes.GroundType type = new GA.Game.GroundTypes.Rough_Standard();
 
             if (c != null)
             {

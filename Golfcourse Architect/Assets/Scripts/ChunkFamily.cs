@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using GA.Objects;
+using GA.Game.GroundTypes;
 
 public class ChunkFamily : MonoBehaviour
 {
@@ -530,7 +531,7 @@ public class ChunkFamily : MonoBehaviour
     }
 
     [System.Obsolete]
-    public void ModifyChunkDataPointTypeGlobally(int x, int y, GA.Ground.GroundType type)
+    public void ModifyChunkDataPointTypeGlobally(int x, int y, GA.Game.GroundTypes.GroundType type)
     {
         Chunk c = chunkFromGlobalTilePos(x, y);
 
@@ -545,7 +546,7 @@ public class ChunkFamily : MonoBehaviour
     /// <param name="position">The tile to be changed (int truncated)</param>
     /// <param name="type">The type of the new tile.</param>
     /// <param name="Rebuild">If true, this method will automatically rebuild the texture for that chunk.</param>
-    public void SetGroundType<T>(Vector2 position, bool Rebuild = true) where T : GA.Ground.GroundType, new()
+    public void SetGroundType<T>(Vector2 position, bool Rebuild = true) where T : GroundType, new()
     {
         Vector2 local = LocalPositionFromChunkSize((int)position.x, (int)position.y);
 
@@ -568,7 +569,7 @@ public class ChunkFamily : MonoBehaviour
     /// <param name="position">The tile to be changed (int truncated)</param>
     /// <param name="type">The type of the new tile.</param>
     /// <param name="Rebuild">If true, this method will automatically rebuild the texture for that chunk.</param>
-    public void SetComplexGroundType(Vector2 position, GA.Ground.GroundType type, bool Rebuild = true)
+    public void SetComplexGroundType(Vector2 position, GA.Game.GroundTypes.GroundType type, bool Rebuild = true)
     {
         Vector2 local = LocalPositionFromChunkSize((int)position.x, (int)position.y);
 
@@ -585,7 +586,7 @@ public class ChunkFamily : MonoBehaviour
             c.BuildSmartSingleTexture(c.data, old, x, y);
     }
 
-    public void ModifyChunkDataPointTypeGloballyTemporarily(int x, int y, GA.Ground.GroundType type)
+    public void ModifyChunkDataPointTypeGloballyTemporarily(int x, int y, GA.Game.GroundTypes.GroundType type)
     {
         Chunk c = chunkFromGlobalTilePos(x, y);
 
@@ -603,7 +604,7 @@ public class ChunkFamily : MonoBehaviour
         c.data.SetObjectID((int)local.x, (int)local.y, id);
     }
 
-    public GA.Ground.GroundType GetChunkDataPointGroundTypeGlobally(int x, int y)
+    public GA.Game.GroundTypes.GroundType GetChunkDataPointGroundTypeGlobally(int x, int y)
     {
         Chunk c = chunkFromGlobalTilePos(x, y);
 
@@ -612,7 +613,7 @@ public class ChunkFamily : MonoBehaviour
         return c.data[(int)local.x, (int)local.y].type;
     }
 
-    public GA.Ground.GroundType GetChunkDataPointGroundTypeGlobally(Vector2 pos)
+    public GA.Game.GroundTypes.GroundType GetChunkDataPointGroundTypeGlobally(Vector2 pos)
     {
         Chunk c = chunkFromGlobalTilePos((int)pos.x, (int)pos.y);
 
@@ -635,7 +636,7 @@ public class ChunkFamily : MonoBehaviour
     /// </summary>
     /// <param name="position">The position to get</param>
     /// <returns>The unique instance of the ground type.</returns>
-    public GA.Ground.GroundType GetGroundTypeInstance(Vector2 position)
+    public GA.Game.GroundTypes.GroundType GetGroundTypeInstance(Vector2 position)
     {
         Chunk c = chunkFromGlobalTilePos((int)position.x, (int)position.y);
 

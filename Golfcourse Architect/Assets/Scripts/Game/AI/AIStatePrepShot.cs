@@ -21,7 +21,7 @@ namespace GA.Game.AI
         {
             ShotPoint nextShotPoint = golfer.CurrentHole.Golfer_CalculateNextShot(golfer, origin);
 
-            if (golfer.family.GetChunkDataPointGroundTypeGlobally(golfer.PlayerBall.FlatPosition) is GA.Ground.Green)
+            if (golfer.family.GetChunkDataPointGroundTypeGlobally(golfer.PlayerBall.FlatPosition) is GA.Game.GroundTypes.Green)
             {
                 block = golfer.PlayerBall.GetComponent<BallPathFinder>().FindPathFlatTarget_Putt(golfer.PlayerBall.transform.position, nextShotPoint.point);
             }

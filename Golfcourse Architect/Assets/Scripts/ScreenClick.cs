@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using GA.Ground;
+using GA.Game.GroundTypes;
 using UnityEngine.EventSystems;
 using System;
 using GA.UI;
@@ -125,10 +125,10 @@ public class ScreenClick : MonoBehaviour
             if (ClickAction.type == ClickType.PLACE_TILE_FAIRWAY)
                 Family.SetGroundType<Fairway>(info.Global);
             else if (ClickAction.type == ClickType.PLACE_TILE_GREEN)
-                Family.SetGroundType<Green>(info.Global);
+                Family.SetGroundType<FacadeBase>(info.Global);
             else if (ClickAction.type == ClickType.NONE)
             {
-                TryActivateHole(info.Global);
+                //TryActivateHole(info.Global);
             }
         }
 
@@ -241,7 +241,7 @@ public class ScreenClick : MonoBehaviour
                         if (Input.GetMouseButtonUp(0))
                         {
                             Family.ModifyChunkDataPointTileElevationGlobally((int)globalX, (int)globalY, lowest);
-                            Family.ModifyChunkDataPointTypeGlobally((int)globalX, (int)globalY, new GA.Ground.Teebox());
+                            Family.ModifyChunkDataPointTypeGlobally((int)globalX, (int)globalY, new GA.Game.GroundTypes.Teebox());
                             Tees newTees = Instantiate(teeObject, teeObject.transform.position, teeObject.transform.rotation);
                             newTees.FlatPosition = new Vector2(globalX, globalY);
                             newTees.CreateFencing();
@@ -299,7 +299,7 @@ public class ScreenClick : MonoBehaviour
 
                         Material[] pinMaterials;
                         pinMaterials = pinObject.GetComponent<MeshRenderer>().materials;
-                        if (Family.GetChunkDataPointTypeofGroundTypeGlobally((int)globalX, (int)globalY) != typeof(GA.Ground.Green))
+                        if (Family.GetChunkDataPointTypeofGroundTypeGlobally((int)globalX, (int)globalY) != typeof(GA.Game.GroundTypes.Green))
                         {
                             foreach (Material m in pinMaterials)
                             {
@@ -330,7 +330,7 @@ public class ScreenClick : MonoBehaviour
 
                         Family.CurrentHoleCreating.pinLineObject = pinObject;
 
-                        if (Input.GetMouseButtonUp(0) && Family.GetChunkDataPointTypeofGroundTypeGlobally((int)globalX, (int)globalY) == typeof(GA.Ground.Green))
+                        if (Input.GetMouseButtonUp(0) && Family.GetChunkDataPointTypeofGroundTypeGlobally((int)globalX, (int)globalY) == typeof(GA.Game.GroundTypes.Green))
                         {
                             c.SetPositionAsHole((int)x, (int)y, (int)(lpX), (int)(lpY));
                             ChunkData old = c.data.DeepCopy();
@@ -404,7 +404,7 @@ public class ScreenClick : MonoBehaviour
     }
 
     [System.Obsolete]
-    private void ChangeTileType(Ray r, GA.Ground.GroundType type)
+    private void ChangeTileType(Ray r, GA.Game.GroundTypes.GroundType type)
     {
         if (Input.GetMouseButtonDown(0))
         {

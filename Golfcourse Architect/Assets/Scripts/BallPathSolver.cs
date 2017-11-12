@@ -502,7 +502,7 @@ public class BallPathSolver : MonoBehaviour
         float accel = sinOfAngle * ball.gravity;
         Vector3 accelDirection = new Vector3(normalUnder.x, 0, normalUnder.z).normalized;
 
-        GA.Ground.GroundType type = new GA.Ground.Rough_Standard();
+        GA.Game.GroundTypes.GroundType type = new GA.Game.GroundTypes.Rough_Standard();
 
         if (c != null)
         {
@@ -541,7 +541,7 @@ public class BallPathSolver : MonoBehaviour
         float accel = sinOfAngle * ball.gravity;
         Vector3 accelDirection = new Vector3(normalUnder.x, 0, normalUnder.z).normalized;
 
-        GA.Ground.GroundType type = new GA.Ground.Rough_Standard();
+        GA.Game.GroundTypes.GroundType type = new GA.Game.GroundTypes.Rough_Standard();
 
         if (c != null)
         {
@@ -624,7 +624,7 @@ public class BallPathSolver : MonoBehaviour
 
 public struct SlopePackage
 {
-    public GA.Ground.GroundType groundType;
+    public GA.Game.GroundTypes.GroundType groundType;
     public bool detected;
     public Vector3 dirNormalized;
     public Vector3 normal;

@@ -9,7 +9,7 @@ namespace GA.Game
 {
     public static class InputStatus
     {
-        private static bool _acs;
+        private static bool _acs = true;
         public static bool AllowCameraScroll
         {
             get
@@ -22,7 +22,7 @@ namespace GA.Game
                     _acs = value;
             }
         }
-        private static bool _acm;
+        private static bool _acm = true;
         public static bool AllowCameraMovement
         {
             get
@@ -35,7 +35,7 @@ namespace GA.Game
                     _acm = value;
             }
         }
-        private static bool _acr;
+        private static bool _acr = true;
         public static bool AllowCameraRotation
         {
             get

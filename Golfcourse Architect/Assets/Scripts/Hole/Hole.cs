@@ -215,7 +215,7 @@ public class Hole : MonoBehaviour
         {
             Vector2 check = start + (dir * i);
 
-            GA.Ground.GroundType type = family.GetChunkDataPointGroundTypeGlobally((int)check.x, (int)check.y);
+            GA.Game.GroundTypes.GroundType type = family.GetChunkDataPointGroundTypeGlobally((int)check.x, (int)check.y);
 
             r += type.shotRisk * (shotRiskPenalty + 1);
         }

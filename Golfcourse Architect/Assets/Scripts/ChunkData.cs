@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using GA.Ground;
+using GA.Game.GroundTypes;
 using GA.Objects;
 using UnityEngine;
 
