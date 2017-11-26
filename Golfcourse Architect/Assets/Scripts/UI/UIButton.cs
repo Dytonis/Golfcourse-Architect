@@ -14,6 +14,9 @@ public class UIButton : MonoBehaviour, IPointerClickHandler
     public HoleObjectButtonID HoleObjects;
 
     public RectTransform Bar;
+    public float DefaultXPostition = -2400f;
+    public float ActivatedXPosition = -750f;
+    public bool AddWidth;
 
     public UIController controller;
 
@@ -100,11 +103,17 @@ public class UIButton : MonoBehaviour, IPointerClickHandler
             float now = Time.time;
             if (!On) //if it WAS on 
             {
-                StartCoroutine(controller.MoveRect(Bar, new Vector2(-2000, Bar.anchoredPosition.y), Bar.anchoredPosition, 10));
+                float pos = DefaultXPostition;
+                if (AddWidth)
+                    pos += (Bar.rect.width / 2f);
+                StartCoroutine(controller.MoveRect(Bar, new Vector2(pos, Bar.anchoredPosition.y), Bar.anchoredPosition, 10));
             }
             else
             {
-                StartCoroutine(controller.MoveRect(Bar, new Vector2(-750, Bar.anchoredPosition.y), Bar.anchoredPosition, 10));
+                float pos = ActivatedXPosition;
+                if (AddWidth)
+                    pos += (Bar.rect.width / 2f);
+                StartCoroutine(controller.MoveRect(Bar, new Vector2(pos, Bar.anchoredPosition.y), Bar.anchoredPosition, 10));
                 controller.BarOutCurrently = Bar;
             }
         }
@@ -150,7 +159,7 @@ public enum MajorButtonID
     Tiles,
     Hole,
     Nature,
-    Utilities,
+    Objects,
     Buildings,
     Landscaping,
     Paths
