@@ -17,6 +17,11 @@ namespace GA.Game
             return GameObject.FindGameObjectWithTag("uiController").GetComponent<UIController>();
         }
 
+        public static Canvas getUICanvas()
+        {
+            return GameObject.FindGameObjectWithTag("uiController").GetComponent<Canvas>();
+        }
+
         public static ScreenClick getScreenClicker()
         {
             return GameObject.FindGameObjectWithTag("cameraClicker").GetComponent<ScreenClick>();

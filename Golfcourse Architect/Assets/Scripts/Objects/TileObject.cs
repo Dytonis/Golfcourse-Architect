@@ -2,12 +2,24 @@
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using GA.Engine;
 
 namespace GA.Objects
 {
     public class TileObject : MonoBehaviour
     {
         public ObjectID objectID;
+        public TileObjectRarityDefinition RarityInfo
+        {
+            get
+            {
+                return Rarity;
+            }
+        }
+        public TileObjectRarityList Rarity;
+        public int Cost;
+        public TileObjectUIInfo UIInfo;
+        public TileObjectEffect Effect;
         public Vector2 FlatPosition;
         public Vector3 CenterPosition
         {
@@ -20,8 +32,8 @@ namespace GA.Objects
 
         public static T GetObjectPrefabFromID<T>(ObjectID id) where T : TileObject
         {
-            T[] tileObjects = Resources.LoadAll<GameObject>("NatureObjects")
-                    .OfType<GameObject>().Select(x => x.GetComponent<T>()).ToArray();
+            T[] tileObjects = Resources.LoadAll<GameObject>("TileObjects")
+                    .OfType<GameObject>().Select(x => x.GetComponent<T>()).Where(x => x != null).ToArray();
 
             foreach (T n in tileObjects)
             {
@@ -34,8 +46,8 @@ namespace GA.Objects
 
         public static T GetObjectPrefabFromID<T>(int id) where T : TileObject
         {
-            T[] tileObjects = Resources.LoadAll<GameObject>("NatureObjects")
-                    .OfType<GameObject>().Select(x => x.GetComponent<T>()).ToArray();
+            T[] tileObjects = Resources.LoadAll<GameObject>("TileObjects")
+                    .OfType<GameObject>().Select(x => x.GetComponent<T>()).Where(x => x != null).ToArray();
 
             foreach (T n in tileObjects)
             {
@@ -49,8 +61,8 @@ namespace GA.Objects
 
         public static TileObject GetObjectPrefabFromID(int id)
         {
-            TileObject[] tileObjects = Resources.LoadAll<GameObject>("NatureObjects")
-                    .OfType<GameObject>().Select(x => x.GetComponent<TileObject>()).ToArray();
+            TileObject[] tileObjects = Resources.LoadAll<GameObject>("TileObjects")
+                    .OfType<GameObject>().Select(x => x.GetComponent<TileObject>()).Where(x => x != null).ToArray();
 
             foreach (TileObject n in tileObjects)
             {
@@ -63,8 +75,8 @@ namespace GA.Objects
 
         public static TileObject GetObjectPrefabFromID(ObjectID id)
         {
-            TileObject[] tileObjects = Resources.LoadAll<GameObject>("NatureObjects")
-                    .OfType<GameObject>().Select(x => x.GetComponent<TileObject>()).ToArray();
+            TileObject[] tileObjects = Resources.LoadAll<GameObject>("TileObjects")
+                    .OfType<GameObject>().Select(x => x.GetComponent<TileObject>()).Where(x => x != null).ToArray();
 
             foreach (TileObject n in tileObjects)
             {
@@ -84,7 +96,37 @@ namespace GA.Objects
         NATURE_TREE_TEMPORATE3,
         NATURE_TREE_TEMPORATE4,
         NATURE_TREE_TEMPORATE5,
-        NORM_TEEBOX,
-        NORM_HOLE
+        GHOLE_TEEBOX,
+        GHOLE_HOLE,
+        OBJECT_BALLCLEANER,
+    }
+
+    [System.Serializable]
+    public struct TileObjectEffect
+    {
+        /// <summary>
+        /// Directly affects mood.
+        /// </summary>
+        public float Hapiness;
+        /// <summary>
+        /// Affects the course's scenery rating (for awards, land value, golfer hapiness)
+        /// </summary>
+        public float Scenery;
+        /// <summary>
+        /// Affects how effective an object is at lowering hunger. Lower is better.
+        /// </summary>
+        [TileObjectEffectInverseColor(true)]
+        public float Hunger;
+        /// <summary>
+        /// Affects how much patience a golfer has.
+        /// </summary>
+        public float Patience;
+    }
+
+    [System.Serializable]
+    public struct TileObjectUIInfo
+    {
+        public string UIName;
+        public string Description;
     }
 }

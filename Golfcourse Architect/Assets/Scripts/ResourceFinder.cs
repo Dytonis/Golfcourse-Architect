@@ -12,6 +12,7 @@ namespace GA
             public static class Menus
             {
                 public const string HoleInfoMenu = "UIElements/Menus/HoleInfoMenu";
+                public const string PreviewMenu = "UIElements/Menus/PreviewMenu";
             }
 
             public static class Partials
